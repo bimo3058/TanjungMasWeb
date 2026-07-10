@@ -1,0 +1,77 @@
+/* ============================================================
+   COLORS — Tambaklorok Desa Wisata
+   Every value transcribed verbatim from the Figma source.
+   Two related worlds share this palette:
+     • Public tourism site  — deep blue + gold, white surfaces
+     • Admin panel          — navy sidebar, off-white canvas, gold accents
+   ============================================================ */
+
+:root {
+  /* ---- Brand blue (primary) ---- */
+  --blue-950: #000242;   /* darkest navy — admin sidebar bg            */
+  --blue-900: #040d7a;   /* PRIMARY brand blue — buttons, headings     */
+  --blue-800: #0a0898;   /* deep blue text                             */
+  --blue-750: #1b2386;   /* avatar / solid fill                        */
+  --blue-700: #1d3da2;   /* public top-bar bg                          */
+  --blue-600: #29337f;   /* mid blue                                   */
+  --indigo-500: #4b54b6; /* muted indigo accent                        */
+
+  /* ---- Ink / navy text ---- */
+  --ink-900: #0d1c2f;    /* primary heading text on light              */
+  --ink-700: #454652;    /* body / secondary text                     */
+  --ink-000: #000000;    /* pure black (public body copy)             */
+
+  /* ---- Blue tints (surfaces & borders) ---- */
+  --blue-50:  #f8f9ff;   /* app / page canvas                          */
+  --blue-100: #eff4ff;   /* subtle fill (search field)                 */
+  --blue-150: #e6eeff;   /* icon-circle fill                           */
+  --blue-200: #dde9ff;   /* card hairline border                       */
+  --blue-250: #d5e3fd;   /* light blue fill                            */
+  --blue-300: #d0e6fd;   /* login page bg / nav link text on navy      */
+  --lav-100:  #f2f3f8;   /* lavender-grey fill                         */
+
+  /* ---- Gold / accent ---- */
+  --gold-500: #f3c848;   /* public CTA yellow                          */
+  --gold-400: #fed251;   /* admin accent yellow (active nav, buttons)  */
+  --gold-tan: #e5c683;   /* category chip fill                         */
+  --gold-ink: #735a00;   /* text/icon on gold surfaces                 */
+  --gold-ink-2: #745b00;
+
+  /* ---- Neutrals ---- */
+  --white:    #ffffff;
+  --gray-500: #6b7280;   /* placeholder text                           */
+  --gray-400: #767683;   /* muted text                                 */
+  --gray-350: #acacac;   /* faint text                                 */
+  --gray-300: #c6c5d4;   /* input border                               */
+  --gray-200: #d9d9d9;   /* neutral fill                               */
+
+  /* ---- Semantic ---- */
+  --danger:   #ba1a1a;   /* error / destructive                        */
+
+  /* ============================================================
+     SEMANTIC ALIASES — prefer these in components
+     ============================================================ */
+  --color-primary:        var(--blue-900);
+  --color-primary-hover:   #030a63;   /* ~8% darker than --blue-900     */
+  --color-primary-contrast: var(--white);
+
+  --color-accent:          var(--gold-400);
+  --color-accent-strong:   var(--gold-500);
+  --color-accent-ink:      var(--gold-ink);
+
+  --surface-page:          var(--blue-50);
+  --surface-card:          var(--white);
+  --surface-sidebar:       var(--blue-950);
+  --surface-subtle:        var(--blue-100);
+  --surface-chip:          var(--gold-tan);
+
+  --text-heading:          var(--ink-900);
+  --text-body:             var(--ink-700);
+  --text-muted:            var(--gray-500);
+  --text-on-primary:       var(--white);
+  --text-link:             var(--blue-900);
+
+  --border-card:           var(--blue-200);
+  --border-input:          var(--gray-300);
+  --border-hairline:       rgba(0, 0, 0, 0.1);
+}

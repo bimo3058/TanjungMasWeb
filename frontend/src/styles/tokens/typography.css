@@ -1,0 +1,38 @@
+/* ============================================================
+   TYPOGRAPHY — Tambaklorok Desa Wisata
+   Single family (Poppins) carries the whole system. Sizes and
+   line-heights transcribed from the Figma source — note the
+   off-grid values (25px card titles, 54px hero) are intentional.
+   ============================================================ */
+
+:root {
+  /* ---- Families ---- */
+  --font-sans:   'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-script: 'Pinyon Script', 'Monotype Corsiva', cursive; /* decorative flourish only */
+  --font-alt:    'Plus Jakarta Sans', var(--font-sans);
+
+  /* ---- Weights ---- */
+  --fw-light:     300; /* @kind font */
+  --fw-regular:   400; /* @kind font */
+  --fw-medium:    500; /* @kind font */
+  --fw-semibold:  600; /* @kind font */
+  --fw-bold:      700; /* @kind font */
+  --fw-extrabold: 800; /* @kind font */
+
+  /* ---- Type scale (font-size / line-height) ---- */
+  --fs-hero:      54px;  --lh-hero:   1; /* @kind font */  /* public hero titles, 700 */
+  --fs-display:   40px;  --lh-display: 48px;  /* stat numbers, 700         */
+  --fs-h1:        32px;  --lh-h1:     40px;   /* dashboard welcome, 700    */
+  --fs-h2:        25px;  --lh-h2:     1; /* @kind font */  /* public card titles, 600 */
+  --fs-title:     24px;  --lh-title:  32px;   /* section / portal, 600     */
+  --fs-lg:        20px;  --lh-lg:     28px;   /* lead / large body, 400-500*/
+  --fs-body:      18px;  --lh-body:   28px;   /* intro body, 400           */
+  --fs-md:        16px;  --lh-md:     24px;   /* default body / nav, 400   */
+  --fs-sm:        14px;  --lh-sm:     20px;   /* labels / buttons, 600     */
+  --fs-xs:        12px;  --lh-xs:     16px;   /* eyebrow / meta, 600       */
+
+  /* ---- Letter-spacing (used on small semibold labels) ---- */
+  --ls-label:    0.28px;  /* 14px labels        */
+  --ls-eyebrow:  0.48px;  /* 12px links         */
+  --ls-caps:     0.6px;   /* 12px uppercase     */
+}

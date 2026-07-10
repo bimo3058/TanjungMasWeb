@@ -1,0 +1,41 @@
+/* ============================================================
+   SPACING · RADII · SHADOWS — Tambaklorok Desa Wisata
+   Radii and shadows transcribed from the source. The public site
+   favours 15px radii + soft grey shadows; the admin panel favours
+   8/12px radii + blue-tinted card shadows. Both are kept.
+   ============================================================ */
+
+:root {
+  /* ---- Spacing scale (px) ---- */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+  --space-7:  40px;
+  --space-8:  48px;
+  --space-9:  64px;
+
+  /* ---- Radii ---- */
+  --radius-sm:   8px;    /* admin buttons / inputs        */
+  --radius-md:   12px;   /* admin cards, login card       */
+  --radius-lg:   15px;   /* public cards, search, chips   */
+  --radius-pill: 30px;   /* public CTA pill               */
+  --radius-full: 9999px; /* avatars, round icon buttons   */
+
+  /* ---- Shadows ---- */
+  --shadow-btn:    0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-card:   0 4px 10px 0 rgba(0, 0, 0, 0.1);              /* public card   */
+  --shadow-admin:  inset 0 0 0 1px var(--blue-200),
+                   0 4px 12px 0 rgba(4, 13, 122, 0.04);          /* admin card    */
+  --shadow-pop:    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                   0 4px 6px -4px rgba(0, 0, 0, 0.1);            /* login / modal */
+  --shadow-nav:    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                   0 2px 4px -2px rgba(0, 0, 0, 0.1);            /* sidebar       */
+
+  /* ---- Layout ---- */
+  --sidebar-width: 304px;
+  --topbar-height: 64px;
+  --content-max:   1280px;
+}
