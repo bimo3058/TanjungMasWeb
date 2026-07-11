@@ -35,7 +35,7 @@
                    0 2px 4px -2px rgba(0, 0, 0, 0.1);            /* sidebar       */
 
   /* ---- Layout ---- */
-  --sidebar-width: 304px;
-  --topbar-height: 64px;
+  --sidebar-width: 240px;
+  --topbar-height: 56px;
   --content-max:   1280px;
 }

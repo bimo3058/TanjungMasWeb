@@ -3,14 +3,13 @@ withDefaults(
   defineProps<{
     modelValue: string
     label?: string
-    type?: string
     placeholder?: string
     error?: string
-    autocomplete?: string
+    rows?: number
     dense?: boolean
   }>(),
   {
-    type: 'text',
+    rows: 4,
     dense: false,
   },
 )
@@ -23,16 +22,14 @@ defineEmits<{
 <template>
   <label class="field" :class="{ 'field--dense': dense }">
     <span v-if="label" class="field__label">{{ label }}</span>
-    <span class="field__control" :class="{ 'field__control--icon': !!$slots.icon, 'field__control--error': !!error }">
-      <span v-if="$slots.icon" class="field__icon"><slot name="icon" /></span>
-      <input
-        :type="type"
-        :value="modelValue"
-        :placeholder="placeholder"
-        :autocomplete="autocomplete"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      />
-    </span>
+    <textarea
+      class="field__control"
+      :class="{ 'field__control--error': !!error }"
+      :rows="rows"
+      :value="modelValue"
+      :placeholder="placeholder"
+      @input="$emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+    />
     <span v-if="error" class="field__error">{{ error }}</span>
   </label>
 </template>
@@ -59,20 +56,6 @@ defineEmits<{
 }
 
 .field__control {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.field__icon {
-  position: absolute;
-  left: 12px;
-  display: inline-flex;
-  color: var(--ink-700);
-  pointer-events: none;
-}
-
-.field__control input {
   width: 100%;
   box-sizing: border-box;
   padding: 13px 12px;
@@ -83,35 +66,25 @@ defineEmits<{
   font-size: var(--fs-md);
   color: var(--ink-900);
   outline: none;
+  resize: vertical;
   transition:
     border-color 0.15s ease,
     box-shadow 0.15s ease;
 }
 
-.field--dense .field__control input {
+.field--dense .field__control {
   padding: 8px 10px;
   font-size: 13px;
+  line-height: 18px;
 }
 
-.field--dense .field__icon {
-  left: 10px;
-}
-
-.field__control--icon input {
-  padding-left: 40px;
-}
-
-.field--dense .field__control--icon input {
-  padding-left: 32px;
-}
-
-.field__control input:focus {
+.field__control:focus {
   border-color: var(--blue-900);
   box-shadow: 0 0 0 3px rgba(4, 13, 122, 0.1);
 }
 
-.field__control--error input,
-.field__control--error input:focus {
+.field__control--error,
+.field__control--error:focus {
   border-color: var(--danger);
   box-shadow: 0 0 0 3px rgba(186, 26, 26, 0.1);
 }

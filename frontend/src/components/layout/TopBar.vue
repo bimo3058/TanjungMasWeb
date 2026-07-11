@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import logoCrest from '@/assets/design/logo-crest.png'
 
 const route = useRoute()
+const router = useRouter()
 
 const NAV = [
   { name: 'home', label: 'Beranda' },
@@ -16,10 +17,13 @@ const NAV = [
 
 <template>
   <header class="topbar">
-    <div class="topbar__brand">
+    <RouterLink :to="{ name: 'home' }" class="topbar__brand">
       <img :src="logoCrest" alt="Kelurahan Tanjung Mas" class="topbar__logo" />
-      <span class="topbar__wordmark">Kelurahan Tanjung Mas</span>
-    </div>
+      <div class="topbar__brand-text">
+        <div class="topbar__wordmark">Tanjung Mas</div>
+        <div class="topbar__eyebrow">Kampung Nelayan Bahari</div>
+      </div>
+    </RouterLink>
     <nav class="topbar__nav">
       <RouterLink
         v-for="item in NAV"
@@ -31,7 +35,9 @@ const NAV = [
         {{ item.label }}
       </RouterLink>
     </nav>
-    <BaseButton variant="cta" class="topbar__cta">Hubungi Kami</BaseButton>
+    <BaseButton variant="cta" class="topbar__cta" @click="router.push({ name: 'kontak' })">
+      Hubungi Kami
+    </BaseButton>
   </header>
 </template>
 
@@ -40,57 +46,80 @@ const NAV = [
   position: sticky;
   top: 0;
   z-index: 20;
-  height: 60px;
-  background: var(--blue-700);
+  height: 54px;
+  background: var(--blue-950);
   display: flex;
   align-items: center;
-  padding: 0 52px;
-  gap: 40px;
+  padding: 0 36px;
+  gap: 28px;
+  font-family: var(--font-sans);
 }
 
 .topbar__brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  cursor: pointer;
+  text-decoration: none;
 }
 
 .topbar__logo {
-  height: 34px;
+  height: 30px;
   width: auto;
 }
 
+.topbar__brand-text {
+  line-height: 1;
+}
+
 .topbar__wordmark {
-  font-family: var(--font-sans);
+  font-weight: var(--fw-bold);
+  font-size: 14px;
+  color: var(--white);
+  line-height: 17px;
+}
+
+.topbar__eyebrow {
+  font-size: 9.5px;
   font-weight: var(--fw-semibold);
-  font-size: 18px;
-  color: var(--blue-300);
-  white-space: nowrap;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--gold-400);
 }
 
 .topbar__nav {
   display: flex;
-  gap: 28px;
+  gap: 4px;
   margin-left: auto;
 }
 
 .topbar__link {
-  font-family: var(--font-sans);
-  font-size: var(--fs-md);
+  font-size: 13.5px;
   font-weight: var(--fw-medium);
   cursor: pointer;
   color: var(--blue-300);
-  border-bottom: 2px solid transparent;
-  padding-bottom: 4px;
+  background: transparent;
+  padding: 7px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  transition:
+    color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.topbar__link:hover {
+  color: var(--white);
 }
 
 .topbar__link--active {
   color: var(--white);
-  border-bottom-color: var(--gold-500);
+  font-weight: var(--fw-bold);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .topbar__cta {
-  padding: 9px 22px !important;
-  font-size: var(--fs-md) !important;
+  padding: 7px 18px !important;
+  font-size: 13.5px !important;
   border-radius: var(--radius-pill) !important;
 }
 </style>

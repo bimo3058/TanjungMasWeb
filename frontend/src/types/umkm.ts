@@ -9,3 +9,21 @@ export interface Umkm {
   alamat_lengkap: string | null
   kategori_umkm: KategoriRef | null
 }
+
+export interface UmkmRow {
+  id: string
+  nama_usaha: string
+  slug: string
+  nama_pemilik: string
+  nomor_telepon: string | null
+  alamat_lengkap: string | null
+  deskripsi: string | null
+  gambar_utama: string | null
+  kategori_id: string | null
+  jam_operasional: string | null
+  tahun_berdiri: string | null
+  status_izin: string | null
+  published: boolean
+  created_at: string
+  updated_at: string
+}
