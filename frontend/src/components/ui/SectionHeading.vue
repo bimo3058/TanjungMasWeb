@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ArrowRight } from '@lucide/vue'
+
 withDefaults(
   defineProps<{
     eyebrow?: string
@@ -6,27 +8,58 @@ withDefaults(
     lead?: string
     align?: 'center' | 'left'
     tone?: 'light' | 'dark'
+    action?: string
   }>(),
   {
     align: 'center',
     tone: 'light',
   },
 )
+
+defineEmits<{
+  action: []
+}>()
 </script>
 
 <template>
-  <div class="heading" :class="[`heading--${align}`, `heading--${tone}`]">
-    <span v-if="eyebrow" class="heading__eyebrow">{{ eyebrow }}</span>
-    <h2 class="heading__title">{{ title }}</h2>
-    <p v-if="lead" class="heading__lead">{{ lead }}</p>
+  <div class="heading-row" :class="{ 'heading-row--with-action': action }">
+    <div class="heading" :class="[`heading--${align}`, `heading--${tone}`]">
+      <span v-if="eyebrow" class="heading__eyebrow">{{ eyebrow }}</span>
+      <h2 class="heading__title">{{ title }}</h2>
+      <p v-if="lead" class="heading__lead">{{ lead }}</p>
+    </div>
+    <a v-if="action" class="heading__action" @click="$emit('action')">
+      {{ action }} <ArrowRight :size="14" />
+    </a>
   </div>
 </template>
 
 <style scoped>
+.heading-row--with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.heading__action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13.5px;
+  font-weight: var(--fw-semibold);
+  color: var(--blue-900);
+  cursor: pointer;
+  white-space: nowrap;
+  padding-bottom: 3px;
+  text-decoration: none;
+}
+
 .heading {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 4px;
   font-family: var(--font-sans);
 }
 
@@ -41,19 +74,19 @@ withDefaults(
 }
 
 .heading__eyebrow {
-  font-size: var(--fs-xs);
-  font-weight: var(--fw-semibold);
-  letter-spacing: var(--ls-caps);
+  font-size: 11.5px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 1.6px;
   text-transform: uppercase;
-  color: var(--gold-ink);
+  color: var(--gold-500);
 }
 
 .heading__title {
   margin: 0;
-  font-size: var(--fs-h1);
-  line-height: var(--lh-h1);
+  font-size: 26px;
+  line-height: 32px;
   font-weight: var(--fw-bold);
-  color: var(--blue-900);
+  color: var(--blue-950);
 }
 
 .heading--dark .heading__title {

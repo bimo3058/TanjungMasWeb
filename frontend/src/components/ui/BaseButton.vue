@@ -8,6 +8,7 @@ withDefaults(
     type?: 'button' | 'submit'
     disabled?: boolean
     loading?: boolean
+    href?: string
   }>(),
   {
     variant: 'primary',
@@ -15,14 +16,17 @@ withDefaults(
     type: 'button',
     disabled: false,
     loading: false,
+    href: undefined,
   },
 )
 </script>
 
 <template>
-  <button
-    :type="type"
-    :disabled="disabled || loading"
+  <component
+    :is="href ? 'a' : 'button'"
+    :href="href"
+    :type="href ? undefined : type"
+    :disabled="href ? undefined : disabled || loading"
     :aria-busy="loading"
     class="btn"
     :class="[`btn--${variant}`, `btn--${size}`]"
@@ -31,7 +35,7 @@ withDefaults(
     <span v-else-if="$slots.icon" class="btn__icon"><slot name="icon" /></span>
     <slot />
     <span v-if="!loading && $slots['icon-right']" class="btn__icon"><slot name="icon-right" /></span>
-  </button>
+  </component>
 </template>
 
 <style scoped>
