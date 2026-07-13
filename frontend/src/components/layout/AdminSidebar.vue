@@ -1,20 +1,34 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { LayoutGrid, Waves, Store, Newspaper, Info, LogOut } from '@lucide/vue'
+import { 
+  mdiViewDashboard, 
+  mdiMapOutline, 
+  mdiStorefront, 
+  mdiNewspaper, 
+  mdiInformation, 
+  mdiLogout 
+} from '@mdi/js'
 import logoCrest from '@/assets/design/logo-crest.png'
 import { useAuth } from '@/composables/useAuth'
+
+const props = defineProps<{
+  isOpen: boolean
+}>()
+
+const emit = defineEmits(['close'])
 
 const route = useRoute()
 const router = useRouter()
 const { user, signOut } = useAuth()
 
+// Gunakan path MDI untuk ikon menu
 const NAV = [
-  { name: 'admin-dashboard', label: 'Dashboard', icon: LayoutGrid },
-  { name: 'admin-wisata', label: 'Manajemen Wisata', icon: Waves },
-  { name: 'admin-umkm', label: 'Manajemen UMKM', icon: Store },
-  { name: 'admin-berita', label: 'Manajemen Berita', icon: Newspaper },
-  { name: 'admin-profil', label: 'Profil Desa', icon: Info },
+  { name: 'admin-dashboard', label: 'Dashboard', icon: mdiViewDashboard },
+  { name: 'admin-wisata', label: 'Manajemen Wisata', icon: mdiMapOutline },
+  { name: 'admin-umkm', label: 'Manajemen UMKM', icon: mdiStorefront },
+  { name: 'admin-berita', label: 'Manajemen Berita', icon: mdiNewspaper },
+  { name: 'admin-profil', label: 'Profil Desa', icon: mdiInformation },
 ]
 
 const displayName = computed(
@@ -31,10 +45,17 @@ async function handleLogout() {
   await signOut()
   router.push({ name: 'admin-login' })
 }
+
+// Menutup sidebar di perangkat mobile ketika tautan diklik
+function handleClose() {
+  if (window.innerWidth <= 1024) {
+    emit('close')
+  }
+}
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ 'sidebar--open': isOpen }">
     <div class="sidebar__brand">
       <img :src="logoCrest" alt="Kelurahan Tanjung Mas" class="sidebar__logo" />
       <div class="sidebar__brand-text">
@@ -50,8 +71,12 @@ async function handleLogout() {
         :to="{ name: item.name }"
         class="sidebar__link"
         :class="{ 'sidebar__link--active': isActive(item.name) }"
+        @click="handleClose"
       >
-        <component :is="item.icon" :size="17" class="sidebar__icon" />
+        <!-- Menggunakan SVG untuk merender MDI -->
+        <svg viewBox="0 0 24 24" width="17" height="17" class="sidebar__icon">
+          <path :d="item.icon" fill="currentColor" />
+        </svg>
         {{ item.label }}
       </RouterLink>
     </nav>
@@ -61,7 +86,9 @@ async function handleLogout() {
         <div class="sidebar__user-email">{{ user?.email }}</div>
       </div>
       <button type="button" class="sidebar__logout" title="Keluar" @click="handleLogout">
-        <LogOut :size="16" />
+        <svg viewBox="0 0 24 24" width="16" height="16">
+          <path :d="mdiLogout" fill="currentColor" />
+        </svg>
       </button>
     </div>
   </aside>
@@ -77,6 +104,8 @@ async function handleLogout() {
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-nav);
+  z-index: 100;
+  transition: transform 0.3s ease-in-out;
 }
 
 .sidebar__brand {
@@ -117,6 +146,7 @@ async function handleLogout() {
   padding: 6px 0;
   display: flex;
   flex-direction: column;
+  flex: 1; /* Mendorong profil user ke bawah */
 }
 
 .sidebar__eyebrow {
@@ -146,6 +176,7 @@ async function handleLogout() {
   transition:
     background-color 0.15s ease,
     color 0.15s ease;
+  text-decoration: none;
 }
 
 .sidebar__link:hover {
@@ -212,5 +243,21 @@ async function handleLogout() {
 
 .sidebar__logout:hover {
   color: var(--white);
+}
+
+/* KODE RESPONSIVITAS SIDEBAR */
+@media (max-width: 1024px) {
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+  }
+
+  .sidebar.sidebar--open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
 }
 </style>

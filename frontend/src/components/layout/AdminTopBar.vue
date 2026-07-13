@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Bell, User, ExternalLink } from '@lucide/vue'
+import { Bell, User, ExternalLink, Menu } from '@lucide/vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseSearchBar from '@/components/ui/BaseSearchBar.vue'
 import { useAuth } from '@/composables/useAuth'
@@ -10,24 +10,46 @@ const route = useRoute()
 const router = useRouter()
 const { user } = useAuth()
 
+const emit = defineEmits<{
+  (e: 'toggle'): void
+}>()
+
 const title = computed(() => (route.meta.navTitle as string | undefined) ?? 'Admin Panel')
 const initial = computed(() => (user.value?.email?.[0] ?? 'A').toUpperCase())
-const search = ref('')
+const search = ref((route.query.q as string) || '')
+let searchTimeout: ReturnType<typeof setTimeout> 
+const handleSearch = () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    router.push({ name: route.name as string, query: { ...route.query, q: search.value || undefined } })
+  }, 300)
+}
 </script>
 
 <template>
   <header class="topbar">
-    <span class="topbar__title">{{ title }}</span>
+    <div class="topbar__left">
+      <button class="topbar__hamburger" @click="emit('toggle')" aria-label="Toggle Sidebar">
+        <Menu :size="24" color="var(--blue-950)" />
+      </button>
+      <span class="topbar__title">{{ title }}</span>
+    </div>
+    
     <div class="topbar__actions">
-      <BaseButton variant="outline" size="sm" @click="router.push({ name: 'home' })">
+      <BaseButton class="topbar__view-site" variant="outline" size="sm" @click="router.push({ name: 'home' })">
         <template #icon><ExternalLink :size="15" /></template>
         Lihat Website
       </BaseButton>
-      <BaseSearchBar v-model="search" dense placeholder="Cari" width="220px" />
+      
+      <div class="topbar__search">
+        <BaseSearchBar v-model="search" @update:modelValue="handleSearch" dense placeholder="Cari" width="220px" />
+      </div>
+      
       <span class="topbar__bell">
         <Bell :size="18" color="var(--ink-700)" />
         <span class="topbar__bell-dot" />
       </span>
+      
       <div class="topbar__avatar">
         <User v-if="!user" :size="16" color="var(--blue-50)" />
         <span v-else>{{ initial }}</span>
@@ -50,6 +72,27 @@ const search = ref('')
   box-sizing: border-box;
   position: relative;
   z-index: 1;
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar__hamburger {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s ease;
+}
+
+.topbar__hamburger:hover {
+  opacity: 0.7;
 }
 
 .topbar__title {
@@ -94,5 +137,26 @@ const search = ref('')
   font-family: var(--font-sans);
   font-size: 13px;
   font-weight: var(--fw-semibold);
+}
+
+@media (max-width: 1024px) {
+  .topbar {
+    padding: 0 16px;
+  }
+  
+  .topbar__hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 768px) {
+  .topbar__view-site,
+  .topbar__search {
+    display: none;
+  }
+  
+  .topbar__actions {
+    gap: 10px;
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import SectionHeading from '@/components/ui/SectionHeading.vue'
@@ -33,10 +33,70 @@ const heroLead = computed(
     'Kehidupan pesisir yang autentik — wisata bahari, cita rasa laut, dan kehangatan masyarakat nelayan Semarang.',
 )
 const heroImage = computed(() => profil.value?.hero_image || heroVillage)
+
+// ==========================================
+// 1. CUSTOM DIRECTIVE UNTUK ANIMASI MUNCUL
+// ==========================================
+const vSlideIn = {
+  mounted(el: HTMLElement) {
+    el.classList.add('anim-hidden')
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('anim-visible')
+            obs.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
+    )
+    observer.observe(el)
+  }
+}
+
+// ==========================================
+// 2. LOGIKA AUTO-SCROLL (CAROUSEL)
+// ==========================================
+const wisataScrollRef = ref<HTMLElement | null>(null)
+const umkmScrollRef = ref<HTMLElement | null>(null)
+const autoScrollIntervals: ReturnType<typeof setInterval>[] = []
+
+const setupAutoScroll = (containerRef: HTMLElement | null, delay: number) => {
+  if (!containerRef) return
+  
+  const interval = setInterval(() => {
+    // Cek apakah scroll sudah mencapai ujung kanan (dengan toleransi 10px)
+    const isAtEnd = containerRef.scrollLeft + containerRef.clientWidth >= containerRef.scrollWidth - 10
+    
+    if (isAtEnd) {
+      // Jika mentok kanan, kembali ke awal
+      containerRef.scrollTo({ left: 0, behavior: 'smooth' })
+    } else {
+      // Geser ke kanan sejauh ukuran 1 kartu (sekitar 320px)
+      containerRef.scrollBy({ left: 320, behavior: 'smooth' })
+    }
+  }, delay)
+  
+  autoScrollIntervals.push(interval)
+}
+
+onMounted(() => {
+  // Berikan sedikit jeda agar data & DOM selesai dirender sebelum auto-scroll berjalan
+  setTimeout(() => {
+    setupAutoScroll(wisataScrollRef.value, 3500) // Geser wisata tiap 3.5 detik
+    setupAutoScroll(umkmScrollRef.value, 4000)   // Geser UMKM tiap 4 detik
+  }, 1500)
+})
+
+onBeforeUnmount(() => {
+  autoScrollIntervals.forEach(clearInterval)
+})
 </script>
 
 <template>
   <div>
+    <!-- HERO SECTION -->
     <section
       class="hero"
       :style="{
@@ -44,10 +104,12 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
       }"
     >
       <div class="hero__inner">
-        <span class="hero__eyebrow"><span class="hero__eyebrow-dash" />{{ heroEyebrow }}</span>
-        <h1 class="hero__title">{{ heroTitle }}</h1>
-        <p class="hero__lead">{{ heroLead }}</p>
-        <div class="hero__actions">
+        <span class="hero__eyebrow" v-slide-in style="animation-delay: 100ms;">
+          <span class="hero__eyebrow-dash" />{{ heroEyebrow }}
+        </span>
+        <h1 class="hero__title" v-slide-in style="animation-delay: 200ms;">{{ heroTitle }}</h1>
+        <p class="hero__lead" v-slide-in style="animation-delay: 300ms;">{{ heroLead }}</p>
+        <div class="hero__actions" v-slide-in style="animation-delay: 400ms;">
           <BaseButton variant="cta" class="hero__btn" @click="router.push({ name: 'wisata' })">
             Jelajahi Wisata
           </BaseButton>
@@ -58,7 +120,8 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
       </div>
     </section>
 
-    <div class="stat-strip">
+    <!-- STAT STRIP SECTION -->
+    <div class="stat-strip" v-slide-in style="animation-delay: 500ms;">
       <div class="stat-strip__card">
         <div class="stat-strip__item">
           <div class="stat-strip__value">{{ statsLoading ? '–' : totalWisata }}</div>
@@ -79,21 +142,25 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
       </div>
     </div>
 
+    <!-- WISATA SECTION -->
     <section class="section">
       <div class="section__inner">
-        <SectionHeading
-          eyebrow="Jelajahi"
-          title="Destinasi Wisata"
-          action="Lihat semua"
-          @action="router.push({ name: 'wisata' })"
-        />
-        <div v-if="wisataLoading" class="card-grid card-grid--4">
+        <div v-slide-in>
+          <SectionHeading
+            title="Destinasi Wisata"
+            action="Lihat semua"
+            @action="router.push({ name: 'wisata' })"
+          />
+        </div>
+        <div v-if="wisataLoading" class="card-slider">
           <div v-for="n in 4" :key="n" class="card-skeleton" />
         </div>
         <p v-else-if="wisataItems.length === 0" class="empty-message">
           Belum ada destinasi wisata yang ditampilkan.
         </p>
-        <div v-else class="card-grid card-grid--4">
+        
+        <!-- WRAPPER AUTO-SCROLL -->
+        <div v-else class="card-slider" ref="wisataScrollRef" v-slide-in>
           <WisataCard
             v-for="item in wisataItems"
             :key="item.id"
@@ -109,21 +176,25 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
       </div>
     </section>
 
+    <!-- UMKM SECTION -->
     <section class="section section--tinted">
       <div class="section__inner">
-        <SectionHeading
-          eyebrow="Ekonomi Lokal"
-          title="Produk UMKM Unggulan"
-          action="Lihat semua"
-          @action="router.push({ name: 'umkm' })"
-        />
-        <div v-if="umkmLoading" class="card-grid card-grid--2">
-          <div v-for="n in 4" :key="n" class="card-skeleton card-skeleton--umkm" />
+        <div v-slide-in>
+          <SectionHeading
+            title="Pusat UMKM & Ekonomi Lokal"
+            action="Lihat semua"
+            @action="router.push({ name: 'umkm' })"
+          />
+        </div>
+        <div v-if="umkmLoading" class="card-slider">
+          <div v-for="n in 2" :key="n" class="card-skeleton card-skeleton--umkm" />
         </div>
         <p v-else-if="umkmItems.length === 0" class="empty-message">
           Belum ada produk UMKM yang ditampilkan.
         </p>
-        <div v-else class="card-grid card-grid--2">
+
+        <!-- WRAPPER AUTO-SCROLL -->
+        <div v-else class="card-slider" ref="umkmScrollRef" v-slide-in>
           <UmkmCard
             v-for="item in umkmItems"
             :key="item.id"
@@ -139,12 +210,13 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
 
     <section class="section">
       <div class="section__inner">
-        <SectionHeading
-          eyebrow="Kabar Desa"
-          title="Berita & Kegiatan"
-          action="Semua berita"
-          @action="router.push({ name: 'berita' })"
-        />
+        <div v-slide-in>
+          <SectionHeading
+            title="Berita & Kegiatan"
+            action="Semua berita"
+            @action="router.push({ name: 'berita' })"
+          />
+        </div>
         <div v-if="beritaLoading" class="berita-grid">
           <div class="card-skeleton card-skeleton--big" />
           <div class="berita-grid__side">
@@ -156,6 +228,8 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
         </p>
         <div v-else class="berita-grid">
           <NewsCard
+            v-slide-in
+            style="animation-delay: 0ms;"
             :image="beritaItems[0].gambar_utama"
             :category="beritaItems[0].kategori_berita?.nama"
             :date="beritaItems[0].tanggal_publikasi"
@@ -165,8 +239,10 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
           />
           <div class="berita-grid__side">
             <NewsCard
-              v-for="item in beritaItems.slice(1)"
+              v-for="(item, index) in beritaItems.slice(1)"
               :key="item.id"
+              v-slide-in
+              :style="{ animationDelay: `${(index + 1) * 150}ms` }"
               :image="item.gambar_utama"
               :category="item.kategori_berita?.nama"
               :date="item.tanggal_publikasi"
@@ -181,6 +257,57 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
 </template>
 
 <style scoped>
+.anim-hidden {
+  opacity: 0;
+  animation-fill-mode: forwards; 
+}
+
+.anim-visible {
+  animation-name: fadeUpScale;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeUpScale {
+  0% {
+    opacity: 0;
+    transform: translateY(35px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ==========================================
+   SLIDER OTOMATIS (CAROUSEL)
+========================================== */
+.card-slider {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 16px; /* Memberi ruang agar shadow tidak terpotong */
+  
+  /* Sembunyikan scrollbar bawaan browser agar rapi */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.card-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.card-slider > * {
+  scroll-snap-align: start;
+  flex: 0 0 calc(25% - 12px); /* Tampilkan 4 kartu berjajar di desktop */
+}
+
+/* ==========================================
+   LAYOUT STYLES
+========================================== */
 .hero {
   position: relative;
   padding: 64px 36px 88px;
@@ -304,19 +431,6 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
   margin-bottom: 20px;
 }
 
-.card-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.card-grid--4 {
-  grid-template-columns: repeat(4, 1fr);
-}
-
-.card-grid--2 {
-  grid-template-columns: 1fr 1fr;
-}
-
 .berita-grid {
   display: grid;
   grid-template-columns: 1.15fr 1fr;
@@ -350,12 +464,8 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
 }
 
 @keyframes skeleton-shimmer {
-  0% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
 }
 
 .empty-message {
@@ -364,11 +474,33 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
   font-size: var(--fs-md);
 }
 
+/* RESPONSIVE */
 @media (max-width: 900px) {
-  .card-grid--4,
-  .card-grid--2,
+  /* Ubah ukuran kartu di tablet menjadi 2 per baris */
+  .card-slider > * {
+    flex: 0 0 calc(50% - 8px); 
+  }
   .berita-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Ubah ukuran kartu di HP menjadi 1 per baris */
+  .card-slider > * {
+    flex: 0 0 100%; 
+  }
+  .stat-strip__card {
+    grid-template-columns: 1fr 1fr; 
+  }
+  .stat-strip__item {
+    border-bottom: 1px solid var(--blue-100);
+  }
+  .stat-strip__item:nth-child(even) {
+    border-left: 1px solid var(--blue-100);
+  }
+  .stat-strip__item:nth-child(odd) {
+    border-left: none;
   }
 }
 </style>

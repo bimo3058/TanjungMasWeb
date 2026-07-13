@@ -1,15 +1,17 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Plus, Waves, Newspaper, Store, Pencil, ArrowRight, Map } from '@lucide/vue'
+import { Waves, Newspaper, Store, Pencil, ArrowLeft } from '@lucide/vue'
 import BaseBadge from '@/components/ui/BaseBadge.vue'
-import StatCard from '@/components/ui/StatCard.vue'
-import { useDashboardStats } from '@/composables/useDashboardStats'
 import { formatRelativeIndonesia } from '@/utils/formatDate'
-import logokknt from '@/assets/design/logokknt.png'
+import { supabase } from '@/utils/supabase'
 
 const router = useRouter()
-const { totalWisata, totalBerita, totalUmkm, activity, loading } = useDashboardStats()
 
+const activity = ref<any[]>([])
+const loading = ref(true)
+
+// Helper untuk ikon berdasarkan tipe
 const getActivityIcon = (source: string) => {
   const type = source.toLowerCase()
   if (type === 'berita') return Newspaper
@@ -17,6 +19,12 @@ const getActivityIcon = (source: string) => {
   return Waves
 }
 
+const getStatusVariant = (status: string | boolean) => {
+  const s = String(status).toLowerCase()
+  if (s === 'true' || s === 'published' || s === 'terpublikasi') return 'green'
+  if (s === 'deleted') return 'red'
+  return 'gray' 
+}
 
 const handleEdit = (item: any) => {
   const type = item.source.toLowerCase()
@@ -32,58 +40,102 @@ const handleEdit = (item: any) => {
   
   router.push(`/admin/${routePrefix}/${item.id}`)
 }
+
+const fetchAllActivities = async () => {
+  loading.value = true
+  try {
+    const [beritaRes, umkmRes, wisataRes] = await Promise.all([
+      supabase.from('berita').select('*'),
+      supabase.from('umkm').select('*'),
+      supabase.from('wisata').select('*')
+    ])
+
+    if (beritaRes.error) console.error('Error fetch Berita:', beritaRes.error)
+    if (umkmRes.error) console.error('Error fetch UMKM:', umkmRes.error)
+    if (wisataRes.error) console.error('Error fetch Wisata:', wisataRes.error)
+
+    const combinedData: any[] = []
+
+    if (beritaRes.data) {
+      beritaRes.data.forEach((item: any) => {
+        const rawStatus = item.status ?? item.is_published ?? item.published ?? 'Draft'
+        const statusLabel = (String(rawStatus).toLowerCase() === 'true' || rawStatus === 'Published') ? 'Terpublikasi' : 'Draft'
+
+        combinedData.push({
+          id: item.id,
+          source: 'Berita',
+          title: item.judul || item.title || 'Tanpa Judul',
+          status: statusLabel, 
+          statusVariant: getStatusVariant(rawStatus),
+          updatedAt: item.updated_at || item.created_at || new Date().toISOString()
+        })
+      })
+    }
+
+    if (umkmRes.data) {
+      umkmRes.data.forEach((item: any) => {
+        const rawStatus = item.status ?? item.is_published ?? item.published ?? 'Draft'
+        const statusLabel = (String(rawStatus).toLowerCase() === 'true' || rawStatus === 'Published') ? 'Terpublikasi' : 'Draft'
+
+        combinedData.push({
+          id: item.id,
+          source: 'UMKM',
+          title: item.nama || item.nama_usaha || item.title || 'Tanpa Nama',
+          status: statusLabel,
+          statusVariant: getStatusVariant(rawStatus),
+          updatedAt: item.updated_at || item.created_at || new Date().toISOString()
+        })
+      })
+    }
+
+    if (wisataRes.data) {
+      wisataRes.data.forEach((item: any) => {
+        const rawStatus = item.status ?? item.is_published ?? item.published ?? 'Draft'
+        const statusLabel = (String(rawStatus).toLowerCase() === 'true' || rawStatus === 'Published') ? 'Terpublikasi' : 'Draft'
+
+        combinedData.push({
+          id: item.id,
+          source: 'Destinasi',
+          title: item.nama || item.nama_wisata || item.title || 'Tanpa Nama',
+          status: statusLabel,
+          statusVariant: getStatusVariant(rawStatus),
+          updatedAt: item.updated_at || item.created_at || new Date().toISOString()
+        })
+      })
+    }
+    combinedData.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    
+    activity.value = combinedData
+  } catch (error) {
+    console.error('Gagal memproses data aktivitas:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(() => {
+  fetchAllActivities()
+})
 </script>
 
 <template>
-  <div class="dashboard">
+  <div class="aktivitas-page">
     
-    <!-- HERO SECTION -->
-    <div class="hero">
-      <div class="hero__content">
-        <h1 class="hero__title">Selamat Datang, Admin!</h1>
-        <p class="hero__lead">
-          Kelola informasi desa wisata, perbarui berita, dan pantau perkembangan UMKM Tanjung Mas melalui portal terpadu ini.
-        </p>
-        <div class="hero__actions">
-          <button class="btn btn-yellow" @click="router.push({ name: 'admin-berita-baru' })">
-            <Plus :size="18" /> Buat Berita Baru
-          </button>
-          <button class="btn btn-outline" @click="router.push({ name: 'admin-wisata-baru' })">
-            <Map :size="18" /> Tambah Wisata
-          </button>
-        </div>
-      </div>
-      <div class="hero__image-wrapper">
-        <img :src="logokknt" alt="Ilustrasi Tanjung Mas" class="hero__image" />
-      </div>
+    <!-- HEADER HALAMAN -->
+    <div class="page-header">
+      <button class="back-btn" @click="router.push('/admin')">
+        <ArrowLeft :size="18" /> Kembali ke Dashboard
+      </button>
+      <h1 class="page-title">Semua Aktivitas</h1>
+      <p class="page-subtitle">Riwayat seluruh penambahan dan pembaruan data di sistem.</p>
     </div>
 
-    <!-- STATS SECTION -->
-    <div class="stats">
-      <StatCard label="TOTAL DESTINASI" :value="totalWisata">
-        <template #icon><Waves :size="20" /></template>
-      </StatCard>
-      <StatCard label="ARTIKEL BERITA" :value="totalBerita">
-        <template #icon><Newspaper :size="20" /></template>
-      </StatCard>
-      <StatCard label="PRODUK UMKM" :value="totalUmkm">
-        <template #icon><Store :size="20" /></template>
-      </StatCard>
-    </div>
-
-    <!-- RECENT ACTIVITY SECTION -->
-    <div class="activity">
-      <div class="activity__header">
-        <h2 class="activity__title"> Aktivitas Terbaru</h2>
-        <button class="activity__view-all" @click="router.push('/admin/aktivitas')">
-          View All <ArrowRight :size="16" />
-        </button>
-      </div>
-
+    <!-- KONTEN TABEL -->
+    <div class="activity-container">
       <div v-if="loading" class="activity__skeleton">
-        <div v-for="n in 4" :key="n" class="activity__skeleton-row" />
+        <div v-for="n in 8" :key="n" class="activity__skeleton-row" />
       </div>
-      <p v-else-if="activity.length === 0" class="activity__empty">Belum ada aktivitas.</p>
+      <p v-else-if="activity.length === 0" class="activity__empty">Belum ada aktivitas yang terekam.</p>
       
       <div v-else class="activity__scroll">
         <table class="activity__table">
@@ -139,8 +191,7 @@ const handleEdit = (item: any) => {
 </template>
 
 <style scoped>
-/* GENERAL LAYOUT */
-.dashboard {
+.aktivitas-page {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -151,95 +202,47 @@ const handleEdit = (item: any) => {
   min-height: 100vh;
 }
 
-/* HERO SECTION */
-.hero {
-  background-color: #1a1b5c; 
-  border-radius: 12px;
-  padding: 32px 40px;
+/* HEADER STYLES */
+.page-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  overflow: hidden;
-  position: relative;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.hero__content {
-  max-width: 60%;
-  z-index: 2;
-}
-
-.hero__title {
-  color: #ffffff;
-  font-size: 28px;
-  font-weight: 700;
-  margin: 0 0 12px 0;
-}
-
-.hero__lead {
-  color: #a4a8cc;
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 0 0 24px 0;
-  max-width: 90%;
-}
-
-.hero__actions {
-  display: flex;
-  gap: 16px;
-}
-
-.btn {
+.back-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 20px;
+  background: transparent;
+  border: none;
+  color: #3b508f;
   font-size: 14px;
   font-weight: 600;
-  border-radius: 8px;
   cursor: pointer;
-  border: none;
-  transition: all 0.2s ease;
+  padding: 0;
+  margin-bottom: 8px;
+  width: max-content;
 }
 
-.btn-yellow {
-  background-color: #f7ca3e;
-  color: #1a1b5c;
+.back-btn:hover {
+  text-decoration: underline;
 }
 
-.btn-yellow:hover {
-  background-color: #e5b935;
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0b1134;
+  margin: 0;
 }
 
-.btn-outline {
-  background-color: #262973;
-  color: #ffffff;
-  border: 1px solid #3d4196;
+.page-subtitle {
+  font-size: 14px;
+  color: #7b8293;
+  margin: 0;
 }
 
-.btn-outline:hover {
-  background-color: #31358a;
-}
-
-.hero__image-wrapper {
-  z-index: 1;
-}
-
-.hero__image {
-  height: 160px;
-  width: auto;
-  object-fit: contain;
-}
-
-/* STATS SECTION */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-/* ACTIVITY SECTION */
-.activity {
+/* CONTAINER & TABLE STYLES */
+.activity-container {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
@@ -247,37 +250,6 @@ const handleEdit = (item: any) => {
   overflow: hidden;
   display: flex;
   flex-direction: column;
-}
-
-.activity__header {
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eef0f6;
-}
-
-.activity__title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: #0b1134;
-}
-
-.activity__view-all {
-  background: transparent;
-  border: none;
-  color: #1a1b5c;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.activity__view-all:hover {
-  text-decoration: underline;
 }
 
 .activity__scroll {
@@ -338,7 +310,6 @@ const handleEdit = (item: any) => {
   color: #7b8293;
 }
 
-
 .custom-badge {
   padding: 4px 12px;
   border-radius: 20px;
@@ -346,7 +317,6 @@ const handleEdit = (item: any) => {
   font-weight: 600;
 }
 
-/* ACTION BUTTON */
 .action-btn {
   background: transparent;
   border: none;
@@ -363,7 +333,6 @@ const handleEdit = (item: any) => {
   color: #1a1b5c;
 }
 
-/* LOADING SKELETON */
 .activity__skeleton {
   display: flex;
   flex-direction: column;
@@ -390,36 +359,9 @@ const handleEdit = (item: any) => {
   color: #7b8293;
 }
 
-/* RESPONSIVE DESIGN */
-@media (max-width: 1024px) {
-  .hero {
-    flex-direction: column;
-    text-align: center;
-    gap: 32px;
-  }
-  .hero__content {
-    max-width: 100%;
-  }
-  .hero__lead {
-    margin: 0 auto 24px auto;
-  }
-  .hero__actions {
-    justify-content: center;
-  }
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
-  .dashboard {
+  .aktivitas-page {
     padding: 16px;
-  }
-  .stats {
-    grid-template-columns: 1fr;
-  }
-  .hero__actions {
-    flex-direction: column;
   }
   .activity__table th, .activity__table td {
     padding: 12px 16px;

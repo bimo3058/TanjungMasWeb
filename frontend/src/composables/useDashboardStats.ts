@@ -67,7 +67,7 @@ export function useDashboardStats() {
         id: r.id,
         title: r.nama,
         source: 'Wisata',
-        status: r.published ? 'Dipublikasikan' : 'Draft',
+        status: r.published ? 'Terpublikasi' : 'Draft',
         statusVariant: r.published ? 'accent' : 'category',
         updatedAt: r.updated_at,
       })
@@ -79,7 +79,7 @@ export function useDashboardStats() {
         id: r.id,
         title: r.nama_usaha,
         source: 'UMKM',
-        status: r.published ? 'Dipublikasikan' : 'Draft',
+        status: r.published ? 'Terpublikasi' : 'Draft',
         statusVariant: r.published ? 'accent' : 'category',
         updatedAt: r.updated_at,
       })

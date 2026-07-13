@@ -10,13 +10,13 @@ import BaseToggle from '@/components/ui/BaseToggle.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import NameCell from '@/components/ui/NameCell.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import { useAdminWisataList } from '@/composables/useAdminWisata'
+import { useAdminUmkmList } from '@/composables/useAdminUmkm'
 import { useCategories } from '@/composables/useCategories'
 import { usePagination } from '@/composables/usePagination'
 
 const router = useRouter()
-const { items, loading, fetchList, togglePublished, remove } = useAdminWisataList()
-const { categories } = useCategories('kategori_wisata')
+const { items, loading, fetchList, togglePublished, remove } = useAdminUmkmList()
+const { categories } = useCategories('kategori_umkm')
 
 const search = ref('')
 const kategoriFilter = ref('')
@@ -53,18 +53,18 @@ async function handleDelete() {
   <div class="page">
     <div class="page__header">
       <div class="page__heading">
-        <h1 class="page__title">Manajemen Wisata</h1>
-        <span class="page__count">{{ filteredItems.length }} destinasi</span>
+        <h1 class="page__title">Manajemen UMKM</h1>
+        <span class="page__count">{{ filteredItems.length }} usaha</span>
       </div>
-      <BaseButton variant="primary" size="sm" @click="router.push({ name: 'admin-wisata-baru' })">
+      <BaseButton variant="primary" size="sm" @click="router.push({ name: 'admin-umkm-baru' })">
         <template #icon><Plus :size="15" /></template>
-        Tambah Wisata
+        Tambah UMKM
       </BaseButton>
     </div>
 
     <div class="table-card">
       <div class="table-card__filters">
-        <BaseSearchBar v-model="search" dense width="230px" placeholder="Cari wisata…" />
+        <BaseSearchBar v-model="search" dense width="230px" placeholder="Cari usaha…" />
         <BaseSelect
           v-model="kategoriFilter"
           dense
@@ -85,24 +85,24 @@ async function handleDelete() {
       <div v-if="loading" class="table-card__skeleton">
         <div v-for="n in 4" :key="n" class="table-card__skeleton-row" />
       </div>
-      <p v-else-if="filteredItems.length === 0" class="table-card__empty">Belum ada data wisata.</p>
+      <p v-else-if="filteredItems.length === 0" class="table-card__empty">Belum ada data UMKM.</p>
       <template v-else>
         <div class="table-card__scroll">
           <table class="table">
             <colgroup>
-              <col style="width: 27%" />
+              <col style="width: 30%" />
+              <col style="width: 20%" />
               <col style="width: 14%" />
-              <col style="width: 13%" />
-              <col style="width: 26%" />
+              <col style="width: 16%" />
               <col style="width: 10%" />
               <col style="width: 10%" />
             </colgroup>
             <thead>
               <tr>
-                <th>Nama</th>
+                <th>Nama Usaha</th>
+                <th>Pemilik</th>
                 <th>Kategori</th>
-                <th>Harga Tiket</th>
-                <th>Jam Operasional</th>
+                <th>Telepon</th>
                 <th>Publikasi</th>
                 <th class="table__col-actions">Aksi</th>
               </tr>
@@ -110,11 +110,11 @@ async function handleDelete() {
             <tbody>
               <tr v-for="item in pageItems" :key="item.id">
                 <td>
-                  <NameCell :image="item.gambar_utama" :title="item.nama" :sub="`/${item.slug}`" />
+                  <NameCell :image="item.gambar_utama" :title="item.nama_usaha" :sub="`/${item.slug}`" />
                 </td>
-                <td><BaseBadge variant="blue" dense>{{ item.kategori_wisata?.nama ?? '—' }}</BaseBadge></td>
-                <td class="table__cell-muted">{{ item.harga_tiket || '—' }}</td>
-                <td class="table__cell-muted">{{ item.jam_operasional || '—' }}</td>
+                <td class="table__cell-muted">{{ item.nama_pemilik }}</td>
+                <td><BaseBadge variant="blue" dense>{{ item.kategori_umkm?.nama ?? '—' }}</BaseBadge></td>
+                <td class="table__cell-muted">{{ item.nomor_telepon || '—' }}</td>
                 <td>
                   <BaseToggle
                     :model-value="item.published"
@@ -123,7 +123,7 @@ async function handleDelete() {
                 </td>
                 <td class="table__col-actions">
                   <div class="table__actions">
-                    <IconButton title="Edit" @click="router.push({ name: 'admin-wisata-edit', params: { id: item.id } })">
+                    <IconButton title="Edit" @click="router.push({ name: 'admin-umkm-edit', params: { id: item.id } })">
                       <Pencil :size="13" />
                     </IconButton>
                     <IconButton title="Hapus" danger @click="confirmDelete(item.id)">
@@ -137,7 +137,7 @@ async function handleDelete() {
         </div>
         <div class="table-card__footer">
           <span class="table-card__range">
-            Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} destinasi
+            Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} usaha
           </span>
           <div class="table-card__pager">
             <IconButton title="Sebelumnya" :disabled="page <= 1" @click="prev">
@@ -153,7 +153,7 @@ async function handleDelete() {
 
     <ConfirmDialog
       :open="!!pendingDeleteId"
-      title="Hapus Wisata?"
+      title="Hapus UMKM?"
       message="Data dan seluruh foto galeri terkait akan dihapus permanen. Tindakan ini tidak dapat dibatalkan."
       confirm-label="Hapus"
       danger

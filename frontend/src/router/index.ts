@@ -52,6 +52,12 @@ const router = createRouter({
       meta: { requiresAuth: true },
       children: [
         {
+          path: 'aktivitas',
+          name: 'admin-aktivitas',
+          component: () => import('@/views/admin/AdminAktivitasView.vue'),
+          meta: { navTitle: 'Semua Aktivitas' }
+        },
+        {
           path: '',
           name: 'admin-dashboard',
           component: () => import('../views/admin/AdminDashboardView.vue'),
