@@ -5,11 +5,19 @@ import { Shield, User, Lock } from '@lucide/vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import GoogleGIcon from '@/components/ui/icons/GoogleGIcon.vue'
+import GoogleSignInButton from '@/components/ui/GoogleSignInButton.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
 const route = useRoute()
-const { signInWithPassword, signInWithGoogle, resetPasswordForEmail, fetchRole, signOut } = useAuth()
+const {
+  signInWithPassword,
+  signInWithGoogle,
+  signInWithGoogleIdToken,
+  resetPasswordForEmail,
+  fetchRole,
+  signOut,
+} = useAuth()
 
 type Mode = 'login' | 'forgot' | 'reset-sent'
 const mode = ref<Mode>('login')
@@ -22,6 +30,9 @@ const formError = ref('')
 const isSubmitting = ref(false)
 const isGoogleSubmitting = ref(false)
 const isResetSubmitting = ref(false)
+// Skrip Google Identity Services kadang diblokir ad-blocker/jaringan; kalau itu
+// terjadi, tampilkan tombol redirect lama supaya login Google tetap bisa dipakai.
+const gisUnavailable = ref(false)
 
 // Banner informasi saat diarahkan balik oleh guard/idle-timeout.
 const notice = computed(() => {
@@ -29,6 +40,17 @@ const notice = computed(() => {
   if (route.query.denied) return 'Akun ini tidak memiliki akses admin.'
   return ''
 })
+
+// Login berhasil bukan berarti berhak masuk — verifikasi role admin.
+async function enterAdminArea() {
+  const role = await fetchRole()
+  if (role !== 'admin') {
+    await signOut()
+    formError.value = 'Akun ini tidak memiliki akses admin.'
+    return
+  }
+  router.push({ name: 'admin-dashboard' })
+}
 
 async function handleLogin() {
   formError.value = ''
@@ -43,17 +65,26 @@ async function handleLogin() {
     formError.value = error
     return
   }
-  // Login berhasil bukan berarti berhak masuk — verifikasi role admin.
-  const role = await fetchRole()
+  await enterAdminArea()
   isSubmitting.value = false
-  if (role !== 'admin') {
-    await signOut()
-    formError.value = 'Akun ini tidak memiliki akses admin.'
-    return
-  }
-  router.push({ name: 'admin-dashboard' })
 }
 
+// Jalur utama: id_token dari tombol Google ditukar jadi sesi Supabase di tempat,
+// tanpa meninggalkan halaman.
+async function handleGoogleCredential(token: string, nonce: string) {
+  formError.value = ''
+  isGoogleSubmitting.value = true
+  const { error } = await signInWithGoogleIdToken(token, nonce)
+  if (error) {
+    isGoogleSubmitting.value = false
+    formError.value = error
+    return
+  }
+  await enterAdminArea()
+  isGoogleSubmitting.value = false
+}
+
+// Jalur cadangan: redirect lewat callback Supabase.
 async function handleGoogleSignIn() {
   formError.value = ''
   isGoogleSubmitting.value = true
@@ -140,7 +171,13 @@ function backToLogin() {
 
         <div class="login-card__divider"><span>atau</span></div>
 
+        <GoogleSignInButton
+          v-if="!gisUnavailable"
+          @credential="handleGoogleCredential"
+          @unavailable="gisUnavailable = true"
+        />
         <BaseButton
+          v-else
           variant="outline"
           type="button"
           :loading="isGoogleSubmitting"
@@ -150,6 +187,10 @@ function backToLogin() {
           <template #icon><GoogleGIcon /></template>
           Masuk dengan Google
         </BaseButton>
+
+        <p v-if="isGoogleSubmitting && !gisUnavailable" class="login-card__pending">
+          Memverifikasi akun Google…
+        </p>
       </form>
 
       <form
@@ -306,6 +347,13 @@ function backToLogin() {
 .login-card__divider span {
   color: var(--gray-500);
   font-size: var(--fs-sm);
+}
+
+.login-card__pending {
+  margin: 0;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--ink-700);
 }
 
 .login-card__back-link {
