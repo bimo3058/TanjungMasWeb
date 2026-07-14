@@ -61,7 +61,7 @@ export function useFeaturedUmkm() {
 export function useFeaturedBerita() {
   return useFeatured<Berita>(
     'berita',
-    'id, judul, slug, konten, gambar_utama, tanggal_publikasi, kategori_berita(nama)',
+    'id, judul, slug, konten, gambar_utama, tanggal_publikasi, sorotan, kategori_berita(nama)',
     { filterColumn: 'status', filterValue: 'Terpublikasi', orderColumn: 'tanggal_publikasi' },
   )
 }

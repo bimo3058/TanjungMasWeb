@@ -14,6 +14,7 @@ const { profil, loading } = useProfilDesa()
   <div>
     <PublicCatalogHeader
       :searchable="false"
+      wide-lead
       eyebrow="Tentang Kami"
       :title="profil?.nama_desa || 'Kampung Nelayan Bahari Tambaklorok'"
       :lead="
@@ -23,7 +24,7 @@ const { profil, loading } = useProfilDesa()
     />
     <section class="tentang">
     <div class="tentang__grid">
-      <div class="story-card">
+      <div v-slide-in class="story-card">
         <img :src="profil?.gambar_profil || heroVillage" class="story-card__image" alt="" />
         <div class="story-card__body">
           <div class="story-card__eyebrow">Sejarah Kampung</div>
@@ -36,7 +37,7 @@ const { profil, loading } = useProfilDesa()
         </div>
       </div>
       <div class="side">
-        <div class="contact-card">
+        <div v-slide-in style="animation-delay: 120ms" class="contact-card">
           <h3 class="contact-card__title">Kontak & Alamat</h3>
           <div v-if="profil?.alamat_kantor" class="contact-card__row">
             <MapPin :size="14" class="contact-card__icon" />
@@ -51,7 +52,7 @@ const { profil, loading } = useProfilDesa()
             <span>{{ profil.kontak_telepon }}</span>
           </div>
         </div>
-        <div class="cta-card">
+        <div v-slide-in style="animation-delay: 240ms" class="cta-card">
           <h3 class="cta-card__title">Rencanakan Kunjungan</h3>
           <p class="cta-card__text">
             Hubungi Pokdarwis untuk paket susur kampung, wisata perahu, dan kuliner pesisir.
@@ -74,7 +75,7 @@ const { profil, loading } = useProfilDesa()
 }
 
 .tentang__grid {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
   display: grid;
   grid-template-columns: 1.4fr 1fr;

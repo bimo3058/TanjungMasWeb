@@ -54,13 +54,16 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
         <p v-else-if="items.length === 0" class="empty-message">Belum ada data UMKM.</p>
         <div v-else class="card-grid">
           <UmkmCard
-            v-for="item in items"
+            v-for="(item, index) in items"
             :key="item.id"
+            v-slide-in
+            :style="{ animationDelay: `${(index % 3) * 90}ms` }"
             :image="item.gambar_utama"
             :category="item.kategori_umkm?.nama"
             :title="item.nama_usaha"
             :description="item.deskripsi"
             :address="item.alamat_lengkap"
+            :to="{ name: 'umkm-detail', params: { slug: item.slug } }"
           />
         </div>
       </div>
@@ -76,7 +79,7 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
 }
 
 .catalog-body__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
@@ -92,10 +95,18 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   padding: 4px 12px;
 }
 
+/* Dua kolom di kanvas 1280px membuat tiap kartu selebar ~630px — gambarnya
+   melar dan teksnya berenang. Tiga kolom menjaga proporsi kartu tetap wajar. */
 .card-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+}
+
+@media (max-width: 1080px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .card-skeleton {

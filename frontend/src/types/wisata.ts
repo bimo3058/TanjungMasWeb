@@ -1,3 +1,4 @@
+import type { GaleriFoto } from './galeri'
 import type { KategoriRef } from './kategori'
 
 export interface Wisata {
@@ -10,6 +11,12 @@ export interface Wisata {
   harga_tiket: string | null
   jam_operasional: string | null
   kategori_wisata: KategoriRef | null
+}
+
+/** Wisata di halaman detail — kartu, plus kolom yang tak muat di kartu. */
+export interface WisataDetail extends Wisata {
+  lokasi_maps_url: string | null
+  galeri_wisata: GaleriFoto[]
 }
 
 export interface WisataRow {

@@ -54,8 +54,10 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
         <p v-else-if="items.length === 0" class="empty-message">Belum ada destinasi wisata.</p>
         <div v-else class="card-grid">
           <WisataCard
-            v-for="item in items"
+            v-for="(item, index) in items"
             :key="item.id"
+            v-slide-in
+            :style="{ animationDelay: `${(index % 4) * 90}ms` }"
             :image="item.gambar_utama"
             :category="item.kategori_wisata?.nama"
             :title="item.nama"
@@ -63,6 +65,7 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
             :address="item.alamat_lengkap"
             :harga="item.harga_tiket"
             :jam="item.jam_operasional"
+            :to="{ name: 'wisata-detail', params: { slug: item.slug } }"
           />
         </div>
       </div>
@@ -78,7 +81,7 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
 }
 
 .catalog-body__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 

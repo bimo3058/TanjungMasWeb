@@ -12,12 +12,16 @@ withDefaults(
     searchPlaceholder?: string
     modelValue?: string
     searchable?: boolean
+    /** Lepaskan lead dari lebar 560px. Untuk halaman yang lead-nya satu paragraf
+     *  penuh (Tentang), bukan satu-dua baris seperti halaman katalog. */
+    wideLead?: boolean
   }>(),
   {
     eyebrow: '',
     searchPlaceholder: 'Cari...',
     modelValue: '',
     searchable: true,
+    wideLead: false,
   },
 )
 
@@ -44,7 +48,9 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
           <span class="catalog-header__eyebrow-dash" />{{ eyebrow }}
         </span>
         <h1 class="catalog-header__title">{{ title }}</h1>
-        <p class="catalog-header__lead">{{ lead }}</p>
+        <p class="catalog-header__lead" :class="{ 'catalog-header__lead--wide': wideLead }">
+          {{ lead }}
+        </p>
       </div>
       <BaseSearchBar
         v-if="searchable"
@@ -69,7 +75,7 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
 }
 
 .catalog-header__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
   display: flex;
   align-items: flex-end;
@@ -114,6 +120,12 @@ const heroImage = computed(() => profil.value?.hero_image || heroVillage)
   font-size: 15px;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.88);
+}
+
+/* Lead sepanjang satu paragraf dibiarkan memanjang ke kanan, bukan menumpuk
+   jadi kolom sempit di kiri sementara separuh hero kosong. */
+.catalog-header__lead--wide {
+  max-width: 920px;
 }
 
 @media (max-width: 600px) {

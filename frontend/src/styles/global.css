@@ -58,3 +58,42 @@ a {
 button {
   font-family: inherit;
 }
+
+/* ============================================================
+   v-slide-in — kelas yang dipasang directive src/directives/slideIn.ts.
+   Harus global (bukan scoped di satu view) karena kelasnya ditambahkan
+   lewat JavaScript ke elemen di halaman mana pun.
+   ============================================================ */
+.anim-hidden {
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.anim-visible {
+  animation-name: fadeUpScale;
+  animation-duration: 0.8s;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  animation-fill-mode: forwards;
+}
+
+@keyframes fadeUpScale {
+  0% {
+    opacity: 0;
+    transform: translateY(35px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Directive sudah menahan diri saat reduced-motion, tapi kelas bisa saja sudah
+   terpasang sebelum preferensi berubah — pastikan konten tetap terlihat. */
+@media (prefers-reduced-motion: reduce) {
+  .anim-hidden,
+  .anim-visible {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+}

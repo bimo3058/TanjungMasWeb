@@ -34,29 +34,11 @@ const heroLead = computed(
 )
 const heroImage = computed(() => profil.value?.hero_image || heroVillage)
 
-// ==========================================
-// 1. CUSTOM DIRECTIVE UNTUK ANIMASI MUNCUL
-// ==========================================
-const vSlideIn = {
-  mounted(el: HTMLElement) {
-    el.classList.add('anim-hidden')
-    const observer = new IntersectionObserver(
-      (entries, obs) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('anim-visible')
-            obs.unobserve(entry.target)
-          }
-        })
-      },
-      { threshold: 0.15, rootMargin: '0px 0px -50px 0px' }
-    )
-    observer.observe(el)
-  }
-}
+// v-slide-in kini directive global (src/directives/slideIn.ts) supaya semua
+// halaman memakai animasi yang sama — tidak perlu dideklarasikan di sini lagi.
 
 // ==========================================
-// 2. LOGIKA AUTO-SCROLL (CAROUSEL)
+// LOGIKA AUTO-SCROLL (CAROUSEL)
 // ==========================================
 const wisataScrollRef = ref<HTMLElement | null>(null)
 const umkmScrollRef = ref<HTMLElement | null>(null)
@@ -175,6 +157,7 @@ onBeforeUnmount(() => {
             :address="item.alamat_lengkap"
             :harga="item.harga_tiket"
             :jam="item.jam_operasional"
+            :to="{ name: 'wisata-detail', params: { slug: item.slug } }"
           />
         </div>
       </div>
@@ -207,6 +190,7 @@ onBeforeUnmount(() => {
             :title="item.nama_usaha"
             :description="item.deskripsi"
             :address="item.alamat_lengkap"
+            :to="{ name: 'umkm-detail', params: { slug: item.slug } }"
           />
         </div>
       </div>
@@ -239,6 +223,7 @@ onBeforeUnmount(() => {
             :date="beritaItems[0].tanggal_publikasi"
             :title="beritaItems[0].judul"
             :excerpt="beritaItems[0].konten"
+            :to="{ name: 'berita-detail', params: { slug: beritaItems[0].slug } }"
             big
           />
           <div class="berita-grid__side">
@@ -252,6 +237,7 @@ onBeforeUnmount(() => {
               :date="item.tanggal_publikasi"
               :title="item.judul"
               :excerpt="item.konten"
+              :to="{ name: 'berita-detail', params: { slug: item.slug } }"
             />
           </div>
         </div>
@@ -261,28 +247,9 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.anim-hidden {
-  opacity: 0;
-  animation-fill-mode: forwards; 
-}
-
-.anim-visible {
-  animation-name: fadeUpScale;
-  animation-duration: 0.8s;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
-  animation-fill-mode: forwards;
-}
-
-@keyframes fadeUpScale {
-  0% {
-    opacity: 0;
-    transform: translateY(35px) scale(0.98);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+/* Kelas .anim-hidden/.anim-visible dan keyframes fadeUpScale sekarang hidup di
+   styles/global.css — dipasang directive v-slide-in lewat JS, jadi tidak bisa
+   scoped ke satu view saja. */
 
 /* ==========================================
    SLIDER OTOMATIS (CAROUSEL)
@@ -322,7 +289,7 @@ onBeforeUnmount(() => {
 }
 
 .hero__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
@@ -376,7 +343,7 @@ onBeforeUnmount(() => {
 }
 
 .stat-strip {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: -44px auto 0;
   position: relative;
   z-index: 2;
@@ -427,7 +394,7 @@ onBeforeUnmount(() => {
 }
 
 .section__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 

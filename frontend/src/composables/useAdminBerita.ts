@@ -62,6 +62,7 @@ export interface BeritaFormValues {
   status: string
   penulis: string
   tanggal_publikasi: string | null
+  sorotan: boolean
 }
 
 export async function getBeritaById(id: string): Promise<BeritaRow | null> {

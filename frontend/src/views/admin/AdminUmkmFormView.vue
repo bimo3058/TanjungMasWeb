@@ -11,9 +11,11 @@ import OperatingHoursInput from '@/components/ui/OperatingHoursInput.vue'
 import ImageUploader from '@/components/ui/ImageUploader.vue'
 import GalleryUploader from '@/components/ui/GalleryUploader.vue'
 import UmkmCard from '@/components/ui/UmkmCard.vue'
+import FormChecklist from '@/components/admin/FormChecklist.vue'
 import { getUmkmById, saveUmkm, type UmkmFormValues } from '@/composables/useAdminUmkm'
 import { useCategories } from '@/composables/useCategories'
 import { formatRelativeIndonesia } from '@/utils/formatDate'
+import { slugify } from '@/utils/slugify'
 import type { GaleriFoto } from '@/types/galeri'
 
 const route = useRoute()
@@ -54,6 +56,24 @@ const values = ref<UmkmFormValues>({
 
 const gallery = ref<GaleriFoto[]>([])
 let originalGallery: GaleriFoto[] = []
+
+const checklist = computed(() => [
+  { label: 'Nama usaha diisi', done: !!values.value.nama_usaha.trim() },
+  { label: 'Nama pemilik diisi', done: !!values.value.nama_pemilik.trim() },
+  { label: 'Deskripsi diisi', done: !!values.value.deskripsi.trim() },
+  { label: 'Kategori dipilih', done: !!values.value.kategori_id },
+  { label: 'Gambar utama diunggah', done: !!values.value.gambar_utama },
+  { label: 'Nomor telepon diisi', done: !!values.value.nomor_telepon.trim() },
+  { label: 'Alamat diisi', done: !!values.value.alamat_lengkap.trim() },
+  { label: 'Foto galeri ditambahkan', done: gallery.value.length > 0 },
+])
+
+const checklistMeta = computed(() => [
+  { label: 'Foto galeri', value: `${gallery.value.length}` },
+  // Slug dihitung ulang dari nama usaha saat menyimpan, jadi ini tautan yang
+  // akan terbentuk — bukan slug lama yang tersimpan.
+  { label: 'Tautan publik', value: `/umkm/${slugify(values.value.nama_usaha) || 'nama-usaha'}` },
+])
 
 onMounted(async () => {
   if (!id) return
@@ -169,6 +189,8 @@ async function handleSubmit() {
             />
           </div>
         </div>
+
+        <FormChecklist :items="checklist" :meta="checklistMeta" class="side__checklist" />
       </div>
     </div>
   </div>
@@ -208,11 +230,13 @@ async function handleSubmit() {
   color: var(--text-muted);
 }
 
+/* Tanpa stretch, tiap kolom setinggi isinya sendiri dan dasarnya tidak pernah
+   sejajar. Kolom kanan yang menyesuaikan: checklist-nya memuai. */
 .lower {
   flex: 1;
   display: flex;
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
   min-height: 0;
 }
 
@@ -260,11 +284,18 @@ async function handleSubmit() {
 .side {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Kartu pratinjau setinggi isinya; checklist menyerap sisa tinggi kolom agar
+   dasarnya rata dengan kartu form di kiri. */
+.side__checklist {
+  flex: 1;
 }
 
 .preview-card {
-  position: sticky;
-  top: 0;
   background: var(--surface-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-admin);

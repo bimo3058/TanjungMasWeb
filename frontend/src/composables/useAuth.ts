@@ -104,6 +104,21 @@ export function useAuth() {
     return { error: error ? mapAuthError(error.message) : null }
   }
 
+  /**
+   * Tukar id_token dari Google Identity Services dengan sesi Supabase. Dipakai
+   * sebagai jalur utama karena browser tidak singgah ke domain Supabase, jadi
+   * layar persetujuan Google menampilkan domain kita sendiri.
+   */
+  async function signInWithGoogleIdToken(token: string, nonce: string) {
+    const { error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token,
+      nonce,
+    })
+    return { error: error ? mapAuthError(error.message) : null }
+  }
+
+  /** Cadangan bila skrip GIS diblokir: redirect lewat callback Supabase. */
   async function signInWithGoogle() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -170,6 +185,7 @@ export function useAuth() {
     fetchRole,
     signInWithPassword,
     signInWithGoogle,
+    signInWithGoogleIdToken,
     resetPasswordForEmail,
     updateNamaLengkap,
     updateEmail,

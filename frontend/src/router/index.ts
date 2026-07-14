@@ -16,15 +16,33 @@ const router = createRouter({
           meta: { navTitle: 'Wisata' },
         },
         {
+          path: 'wisata/:slug',
+          name: 'wisata-detail',
+          component: () => import('../views/WisataDetailView.vue'),
+          meta: { navTitle: 'Wisata' },
+        },
+        {
           path: 'umkm',
           name: 'umkm',
           component: () => import('../views/UmkmListView.vue'),
           meta: { navTitle: 'UMKM' },
         },
         {
+          path: 'umkm/:slug',
+          name: 'umkm-detail',
+          component: () => import('../views/UmkmDetailView.vue'),
+          meta: { navTitle: 'UMKM' },
+        },
+        {
           path: 'berita',
           name: 'berita',
           component: () => import('../views/BeritaListView.vue'),
+          meta: { navTitle: 'Berita' },
+        },
+        {
+          path: 'berita/:slug',
+          name: 'berita-detail',
+          component: () => import('../views/BeritaDetailView.vue'),
           meta: { navTitle: 'Berita' },
         },
         {

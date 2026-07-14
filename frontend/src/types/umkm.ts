@@ -1,3 +1,4 @@
+import type { GaleriFoto } from './galeri'
 import type { KategoriRef } from './kategori'
 
 export interface Umkm {
@@ -8,6 +9,16 @@ export interface Umkm {
   gambar_utama: string | null
   alamat_lengkap: string | null
   kategori_umkm: KategoriRef | null
+}
+
+/** UMKM di halaman detail — kartu, plus kolom yang tak muat di kartu. */
+export interface UmkmDetail extends Umkm {
+  nama_pemilik: string
+  nomor_telepon: string | null
+  jam_operasional: string | null
+  tahun_berdiri: string | null
+  status_izin: string | null
+  galeri_umkm: GaleriFoto[]
 }
 
 export interface UmkmRow {
