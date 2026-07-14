@@ -8,10 +8,12 @@ withDefaults(
     error?: string
     autocomplete?: string
     dense?: boolean
+    disabled?: boolean
   }>(),
   {
     type: 'text',
     dense: false,
+    disabled: false,
   },
 )
 
@@ -30,6 +32,7 @@ defineEmits<{
         :value="modelValue"
         :placeholder="placeholder"
         :autocomplete="autocomplete"
+        :disabled="disabled"
         @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       />
     </span>
@@ -108,6 +111,12 @@ defineEmits<{
 .field__control input:focus {
   border-color: var(--blue-900);
   box-shadow: 0 0 0 3px rgba(4, 13, 122, 0.1);
+}
+
+.field__control input:disabled {
+  background: var(--lav-100);
+  color: var(--gray-500);
+  cursor: not-allowed;
 }
 
 .field__control--error input,

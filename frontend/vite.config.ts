@@ -14,20 +14,35 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       manifest: {
-        name: "TanjungMas",
-        short_name: "TJMas",
-        description: "Deskripsi aplikasi",
-        theme_color: "#0B266E",
+        name: "Desa Wisata Kampung Nelayan Bahari Tambaklorok",
+        short_name: "Tanjung Mas",
+        description:
+          "Wisata bahari, UMKM, dan kabar desa Kelurahan Tanjung Mas, Semarang.",
+        lang: "id",
+        start_url: "/",
+        display: "standalone",
+        background_color: "#f8f9ff",
+        theme_color: "#000242",
         icons: [
           {
             src: "pwa-192x192.png",
             sizes: "192x192",
             type: "image/png",
+            purpose: "any",
           },
           {
             src: "pwa-512x512.png",
             sizes: "512x512",
             type: "image/png",
+            purpose: "any",
+          },
+          {
+            // Android memotong ikon (bisa jadi lingkaran); versi ini sudah
+            // diberi ruang aman agar crest tidak terpotong.
+            src: "pwa-maskable-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
           },
         ],
       },

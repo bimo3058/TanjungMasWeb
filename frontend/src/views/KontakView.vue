@@ -149,6 +149,7 @@ const { profil, loading } = useProfilDesa()
   line-height: 20px;
   color: var(--ink-700);
   border-bottom: 1px solid var(--blue-100);
+  overflow-wrap: anywhere;
 }
 
 .kontak-card__row:last-child {
@@ -163,7 +164,24 @@ const { profil, loading } = useProfilDesa()
 
 .kontak-card__actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 24px;
+}
+
+@media (max-width: 600px) {
+  .kontak-header {
+    padding: 32px 20px;
+  }
+  .kontak-header__title {
+    font-size: 25px;
+    line-height: 30px;
+  }
+  .kontak-body {
+    padding: 28px 20px 44px;
+  }
+  .kontak-card {
+    padding: 22px 20px;
+  }
 }
 </style>

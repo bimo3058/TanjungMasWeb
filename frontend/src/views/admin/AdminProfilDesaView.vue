@@ -137,13 +137,13 @@ async function handleSubmit() {
 
 <style scoped>
 .page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px 20px;
   font-family: var(--font-sans);
-  min-height: 0;
   box-sizing: border-box;
 }
 
@@ -326,5 +326,34 @@ async function handleSubmit() {
   padding: 16px;
   font-size: 12.5px;
   color: var(--gray-500);
+}
+
+@media (max-width: 768px) {
+  .page {
+    padding: 14px var(--mobile-gutter) 22px;
+  }
+
+  /* Judul sudah tampil di top bar. */
+  .page__title,
+  .page__count {
+    display: none;
+  }
+
+  .page__header {
+    justify-content: flex-end;
+  }
+
+  /* Form dan pratinjau ditumpuk — dua kolom terlalu sempit di ponsel. */
+  .lower {
+    flex-direction: column;
+  }
+
+  .form-card {
+    padding: 16px;
+  }
+
+  .form-card__grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

@@ -9,14 +9,15 @@ import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseToggle from '@/components/ui/BaseToggle.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import NameCell from '@/components/ui/NameCell.vue'
+import AdminListCard from '@/components/ui/AdminListCard.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
-import { useAdminUmkmList } from '@/composables/useAdminUmkm'
+import { useAdminWisataList } from '@/composables/useAdminWisata'
 import { useCategories } from '@/composables/useCategories'
 import { usePagination } from '@/composables/usePagination'
 
 const router = useRouter()
-const { items, loading, fetchList, togglePublished, remove } = useAdminUmkmList()
-const { categories } = useCategories('kategori_umkm')
+const { items, loading, fetchList, togglePublished, remove } = useAdminWisataList()
+const { categories } = useCategories('kategori_wisata')
 
 const search = ref('')
 const kategoriFilter = ref('')
@@ -53,27 +54,31 @@ async function handleDelete() {
   <div class="page">
     <div class="page__header">
       <div class="page__heading">
-        <h1 class="page__title">Manajemen UMKM</h1>
-        <span class="page__count">{{ filteredItems.length }} usaha</span>
+        <h1 class="page__title">Manajemen Wisata</h1>
+        <span class="page__count">{{ filteredItems.length }} destinasi</span>
       </div>
-      <BaseButton variant="primary" size="sm" @click="router.push({ name: 'admin-umkm-baru' })">
+      <BaseButton variant="primary" size="sm" @click="router.push({ name: 'admin-wisata-baru' })">
         <template #icon><Plus :size="15" /></template>
-        Tambah UMKM
+        Tambah Wisata
       </BaseButton>
     </div>
 
     <div class="table-card">
       <div class="table-card__filters">
-        <BaseSearchBar v-model="search" dense width="230px" placeholder="Cari usaha…" />
+        <div class="filters__search">
+          <BaseSearchBar v-model="search" dense placeholder="Cari wisata…" />
+        </div>
         <BaseSelect
           v-model="kategoriFilter"
           dense
+          class="filters__select"
           placeholder="Semua kategori"
           :options="categories.map((k) => ({ value: k.id, label: k.nama }))"
         />
         <BaseSelect
           v-model="statusFilter"
           dense
+          class="filters__select"
           placeholder="Semua status"
           :options="[
             { value: 'published', label: 'Dipublikasikan' },
@@ -85,24 +90,24 @@ async function handleDelete() {
       <div v-if="loading" class="table-card__skeleton">
         <div v-for="n in 4" :key="n" class="table-card__skeleton-row" />
       </div>
-      <p v-else-if="filteredItems.length === 0" class="table-card__empty">Belum ada data UMKM.</p>
+      <p v-else-if="filteredItems.length === 0" class="table-card__empty">Belum ada data wisata.</p>
       <template v-else>
         <div class="table-card__scroll">
           <table class="table">
             <colgroup>
-              <col style="width: 30%" />
-              <col style="width: 20%" />
-              <col style="width: 14%" />
+              <col style="width: 32%" />
+              <col style="width: 18%" />
               <col style="width: 16%" />
-              <col style="width: 10%" />
-              <col style="width: 10%" />
+              <col style="width: 16%" />
+              <col style="width: 9%" />
+              <col style="width: 9%" />
             </colgroup>
             <thead>
               <tr>
-                <th>Nama Usaha</th>
-                <th>Pemilik</th>
+                <th>Nama Wisata</th>
                 <th>Kategori</th>
-                <th>Telepon</th>
+                <th>Harga Tiket</th>
+                <th>Jam Operasional</th>
                 <th>Publikasi</th>
                 <th class="table__col-actions">Aksi</th>
               </tr>
@@ -110,11 +115,11 @@ async function handleDelete() {
             <tbody>
               <tr v-for="item in pageItems" :key="item.id">
                 <td>
-                  <NameCell :image="item.gambar_utama" :title="item.nama_usaha" :sub="`/${item.slug}`" />
+                  <NameCell :image="item.gambar_utama" :title="item.nama" :sub="`/${item.slug}`" />
                 </td>
-                <td class="table__cell-muted">{{ item.nama_pemilik }}</td>
-                <td><BaseBadge variant="blue" dense>{{ item.kategori_umkm?.nama ?? '—' }}</BaseBadge></td>
-                <td class="table__cell-muted">{{ item.nomor_telepon || '—' }}</td>
+                <td><BaseBadge variant="blue" dense>{{ item.kategori_wisata?.nama ?? '—' }}</BaseBadge></td>
+                <td class="table__cell-muted">{{ item.harga_tiket || '—' }}</td>
+                <td class="table__cell-muted">{{ item.jam_operasional || '—' }}</td>
                 <td>
                   <BaseToggle
                     :model-value="item.published"
@@ -123,7 +128,7 @@ async function handleDelete() {
                 </td>
                 <td class="table__col-actions">
                   <div class="table__actions">
-                    <IconButton title="Edit" @click="router.push({ name: 'admin-umkm-edit', params: { id: item.id } })">
+                    <IconButton title="Edit" @click="router.push({ name: 'admin-wisata-edit', params: { id: item.id } })">
                       <Pencil :size="13" />
                     </IconButton>
                     <IconButton title="Hapus" danger @click="confirmDelete(item.id)">
@@ -135,9 +140,27 @@ async function handleDelete() {
             </tbody>
           </table>
         </div>
+
+        <!-- Versi ponsel: satu kartu per baris tabel. -->
+        <div class="card-list">
+          <AdminListCard
+            v-for="item in pageItems"
+            :key="item.id"
+            :image="item.gambar_utama"
+            :title="item.nama"
+            :sub="`/${item.slug}`"
+            :category="item.kategori_wisata?.nama ?? undefined"
+            :metas="[item.harga_tiket, item.jam_operasional]"
+            :published="item.published"
+            @update:published="togglePublished(item.id, $event)"
+            @edit="router.push({ name: 'admin-wisata-edit', params: { id: item.id } })"
+            @delete="confirmDelete(item.id)"
+          />
+        </div>
+
         <div class="table-card__footer">
           <span class="table-card__range">
-            Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} usaha
+            Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} destinasi
           </span>
           <div class="table-card__pager">
             <IconButton title="Sebelumnya" :disabled="page <= 1" @click="prev">
@@ -153,7 +176,7 @@ async function handleDelete() {
 
     <ConfirmDialog
       :open="!!pendingDeleteId"
-      title="Hapus UMKM?"
+      title="Hapus Wisata?"
       message="Data dan seluruh foto galeri terkait akan dihapus permanen. Tindakan ini tidak dapat dibatalkan."
       confirm-label="Hapus"
       danger
@@ -166,13 +189,13 @@ async function handleDelete() {
 
 <style scoped>
 .page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px 20px;
   font-family: var(--font-sans);
-  min-height: 0;
   box-sizing: border-box;
 }
 
@@ -222,12 +245,13 @@ async function handleDelete() {
 }
 
 .table-card__scroll {
-  overflow-x: hidden;
+  overflow-x: auto;
   flex: 1;
 }
 
 .table {
   width: 100%;
+  min-width: 720px;
   table-layout: fixed;
   border-collapse: collapse;
 }
@@ -314,5 +338,74 @@ async function handleDelete() {
   margin: 0;
   text-align: center;
   color: var(--text-muted);
+}
+
+.filters__search {
+  width: 230px;
+  max-width: 100%;
+}
+
+.card-list {
+  display: none;
+}
+
+/* ---- Ponsel: tabel diganti daftar kartu ---- */
+@media (max-width: 768px) {
+  .page {
+    padding: 14px var(--mobile-gutter) 22px;
+  }
+
+  /* Judul sudah tampil di top bar — di sini cukup jumlah data. */
+  .page__title {
+    display: none;
+  }
+
+  /* Kartu berdiri langsung di atas kanvas, bukan di dalam kartu tabel. */
+  .table-card {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+    gap: 12px;
+  }
+
+  .table-card__filters {
+    padding: 0;
+    border-bottom: none;
+    gap: 9px;
+  }
+
+  .filters__search {
+    flex: 1 0 100%;
+    width: auto;
+  }
+
+  .filters__select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .table-card__scroll {
+    display: none;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .table-card__footer {
+    padding: 4px 0 0;
+    border-top: none;
+  }
+
+  .table-card__skeleton {
+    padding: 0;
+  }
+
+  .table-card__empty {
+    padding: 24px 0;
+  }
 }
 </style>

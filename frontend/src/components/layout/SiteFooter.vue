@@ -35,7 +35,7 @@ const CONTACT = computed(() =>
           Desa Wisata Kampung Nelayan Bahari. Melestarikan budaya, memberdayakan pesisir.
         </p>
       </div>
-      <div>
+      <div class="footer__col footer__col--links">
         <h4 class="footer__heading">Jelajahi</h4>
         <RouterLink
           v-for="link in EXPLORE_LINKS"
@@ -46,7 +46,7 @@ const CONTACT = computed(() =>
           {{ link.label }}
         </RouterLink>
       </div>
-      <div>
+      <div class="footer__col">
         <h4 class="footer__heading">Kontak</h4>
         <div v-for="(item, i) in CONTACT" :key="i" class="footer__contact-row">
           <component :is="item.icon" :size="13" class="footer__contact-icon" />
@@ -125,11 +125,12 @@ const CONTACT = computed(() =>
 
 .footer__contact-row {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   font-size: 13px;
   padding: 3px 0;
   color: rgba(255, 255, 255, 0.75);
+  overflow-wrap: anywhere;
 }
 
 .footer__contact-icon {
@@ -148,5 +149,57 @@ const CONTACT = computed(() =>
   flex-wrap: wrap;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
+}
+
+@media (max-width: 760px) {
+  .footer__grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .footer {
+    padding: 28px 20px 18px;
+  }
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* Jarak aman bawah + tinggi tab bar sudah ditangani PublicLayout. */
+  .footer {
+    padding: 26px var(--mobile-gutter) 20px;
+  }
+
+  .footer__grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  /* Tautan jelajah jadi deretan chip — lebih padat daripada daftar bertumpuk. */
+  .footer__heading {
+    display: none;
+  }
+
+  .footer__col--links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .footer__link {
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.07);
+    font-size: 12.5px;
+  }
+
+  .footer__bottom {
+    margin-top: 16px;
+    font-size: 11px;
+  }
 }
 </style>

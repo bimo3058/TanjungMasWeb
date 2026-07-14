@@ -20,6 +20,7 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   <div>
     <PublicCatalogHeader
       v-model="search"
+      eyebrow="Jelajahi Tambaklorok"
       title="Katalog Destinasi Wisata"
       lead="Jelajahi keindahan alam dan warisan budaya pesisir Tambaklorok, Semarang."
       search-placeholder="Cari destinasi wisata..."
@@ -99,6 +100,12 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   gap: 16px;
 }
 
+@media (max-width: 1080px) {
+  .card-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .card-skeleton {
   height: 260px;
   border-radius: var(--radius-md);
@@ -122,9 +129,43 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   font-size: var(--fs-md);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 820px) {
+  .catalog-body {
+    padding: 20px 20px 40px;
+  }
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-body {
+    padding: 18px var(--mobile-gutter) 32px;
+  }
+
+  /* Chip kategori digeser menyamping; sengaja dibocorkan sampai tepi layar
+     agar chip terakhir tidak tampak terpotong begitu saja. */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--mobile-gutter)) 16px;
+    padding: 0 var(--mobile-gutter) 4px;
+    scrollbar-width: none;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters__chip {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    padding: 6px 14px;
+  }
+
   .card-grid {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
 }
 </style>

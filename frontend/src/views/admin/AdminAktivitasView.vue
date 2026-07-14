@@ -192,14 +192,14 @@ onMounted(() => {
 
 <style scoped>
 .aktivitas-page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 24px;
   padding: 24px 32px;
   font-family: 'Poppins', sans-serif;
   background-color: #F8F9FF;
-  min-height: 100vh;
 }
 
 /* HEADER STYLES */

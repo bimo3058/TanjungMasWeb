@@ -82,6 +82,10 @@ const setupAutoScroll = (containerRef: HTMLElement | null, delay: number) => {
 }
 
 onMounted(() => {
+  // Di ponsel kartu ditumpuk vertikal (lihat media query 600px), jadi tidak ada
+  // carousel yang perlu digeser.
+  if (window.matchMedia('(max-width: 600px)').matches) return
+
   // Berikan sedikit jeda agar data & DOM selesai dirender sebelum auto-scroll berjalan
   setTimeout(() => {
     setupAutoScroll(wisataScrollRef.value, 3500) // Geser wisata tiap 3.5 detik
@@ -478,29 +482,99 @@ onBeforeUnmount(() => {
 @media (max-width: 900px) {
   /* Ubah ukuran kartu di tablet menjadi 2 per baris */
   .card-slider > * {
-    flex: 0 0 calc(50% - 8px); 
+    flex: 0 0 calc(50% - 8px);
   }
   .berita-grid {
     grid-template-columns: 1fr;
   }
+  .hero {
+    padding: 52px 24px 80px;
+  }
+  .hero__title {
+    font-size: 34px;
+  }
+  .section {
+    padding: 36px 24px 40px;
+  }
+  .stat-strip {
+    padding: 0 24px;
+  }
 }
 
 @media (max-width: 600px) {
-  /* Ubah ukuran kartu di HP menjadi 1 per baris */
+  /* Di ponsel kartu ditumpuk vertikal, bukan carousel — semua isi terlihat
+     tanpa perlu menggeser ke samping. */
+  .card-slider {
+    flex-direction: column;
+    gap: 14px;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 0;
+  }
   .card-slider > * {
-    flex: 0 0 100%; 
+    flex: none;
+    scroll-snap-align: none;
+  }
+
+  .hero {
+    padding: 30px var(--mobile-gutter) 56px;
+  }
+  .hero__title {
+    font-size: 29px;
+    line-height: 1.12;
+    text-wrap: balance;
+  }
+  .hero__lead {
+    margin: 12px 0 20px;
+    font-size: 14px;
+  }
+  .hero__actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .hero__btn {
+    width: 100%;
+    justify-content: center;
+    padding: 13px 24px !important;
+  }
+
+  .stat-strip {
+    margin-top: -40px;
+    padding: 0 var(--mobile-gutter);
   }
   .stat-strip__card {
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr 1fr;
+    border-radius: var(--radius-lg);
   }
   .stat-strip__item {
-    border-bottom: 1px solid var(--blue-100);
+    padding: 16px 12px;
+  }
+  .stat-strip__item:nth-child(odd) {
+    border-left: none;
   }
   .stat-strip__item:nth-child(even) {
     border-left: 1px solid var(--blue-100);
   }
-  .stat-strip__item:nth-child(odd) {
-    border-left: none;
+  .stat-strip__item:nth-child(n + 3) {
+    border-top: 1px solid var(--blue-100);
+  }
+  .stat-strip__value {
+    font-size: 24px;
+    line-height: 28px;
+  }
+  .stat-strip__label {
+    font-size: 12px;
+  }
+
+  .section {
+    padding: 28px var(--mobile-gutter) 8px;
+  }
+  .section--tinted {
+    padding: 24px var(--mobile-gutter);
+  }
+  .berita-grid,
+  .berita-grid__side {
+    gap: 14px;
   }
 }
 </style>

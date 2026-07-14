@@ -5,9 +5,13 @@ import BaseBadge from '@/components/ui/BaseBadge.vue'
 import NewsCard from '@/components/ui/NewsCard.vue'
 import { usePublicBerita } from '@/composables/usePublicCatalog'
 import { useCategories } from '@/composables/useCategories'
+import { useMediaQuery } from '@/composables/useMediaQuery'
 
 const { items, loading, fetchList } = usePublicBerita()
 const { categories } = useCategories('kategori_berita')
+
+// Di ponsel berita teratas tampil sebagai kartu besar (gambar di atas).
+const isPhone = useMediaQuery('(max-width: 600px)')
 
 const search = ref('')
 const kategoriFilter = ref('')
@@ -20,6 +24,7 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   <div>
     <PublicCatalogHeader
       v-model="search"
+      eyebrow="Kabar Terkini"
       title="Berita & Kegiatan Desa"
       lead="Kabar terbaru dari kegiatan warga, pokdarwis, dan program desa wisata."
       search-placeholder="Cari berita..."
@@ -53,13 +58,14 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
         <p v-else-if="items.length === 0" class="empty-message">Belum ada berita.</p>
         <div v-else class="card-grid">
           <NewsCard
-            v-for="item in items"
+            v-for="(item, index) in items"
             :key="item.id"
             :image="item.gambar_utama"
             :category="item.kategori_berita?.nama"
             :date="item.tanggal_publikasi"
             :title="item.judul"
             :excerpt="item.konten"
+            :big="isPhone && index === 0"
           />
         </div>
       </div>
@@ -120,9 +126,42 @@ watch([search, kategoriFilter], () => fetchList(search.value, kategoriFilter.val
   font-size: var(--fs-md);
 }
 
-@media (max-width: 900px) {
+@media (max-width: 820px) {
+  .catalog-body {
+    padding: 20px 20px 40px;
+  }
   .card-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-body {
+    padding: 18px var(--mobile-gutter) 32px;
+  }
+
+  /* Chip kategori digeser menyamping; sengaja dibocorkan sampai tepi layar
+     agar chip terakhir tidak tampak terpotong begitu saja. */
+  .filters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    margin: 0 calc(-1 * var(--mobile-gutter)) 16px;
+    padding: 0 var(--mobile-gutter) 4px;
+    scrollbar-width: none;
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters__chip {
+    flex-shrink: 0;
+    font-size: 12.5px;
+    padding: 6px 14px;
+  }
+
+  .card-grid {
+    gap: 14px;
   }
 }
 </style>

@@ -176,13 +176,13 @@ async function handleSubmit() {
 
 <style scoped>
 .page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px 20px;
   font-family: var(--font-sans);
-  min-height: 0;
   box-sizing: border-box;
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Shield, User, Lock } from '@lucide/vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
@@ -8,7 +8,8 @@ import GoogleGIcon from '@/components/ui/icons/GoogleGIcon.vue'
 import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
-const { signInWithPassword, signInWithGoogle, resetPasswordForEmail } = useAuth()
+const route = useRoute()
+const { signInWithPassword, signInWithGoogle, resetPasswordForEmail, fetchRole, signOut } = useAuth()
 
 type Mode = 'login' | 'forgot' | 'reset-sent'
 const mode = ref<Mode>('login')
@@ -22,6 +23,13 @@ const isSubmitting = ref(false)
 const isGoogleSubmitting = ref(false)
 const isResetSubmitting = ref(false)
 
+// Banner informasi saat diarahkan balik oleh guard/idle-timeout.
+const notice = computed(() => {
+  if (route.query.timeout) return 'Sesi berakhir karena tidak ada aktivitas. Silakan masuk kembali.'
+  if (route.query.denied) return 'Akun ini tidak memiliki akses admin.'
+  return ''
+})
+
 async function handleLogin() {
   formError.value = ''
   if (!email.value || !password.value) {
@@ -30,9 +38,17 @@ async function handleLogin() {
   }
   isSubmitting.value = true
   const { error } = await signInWithPassword(email.value, password.value)
-  isSubmitting.value = false
   if (error) {
+    isSubmitting.value = false
     formError.value = error
+    return
+  }
+  // Login berhasil bukan berarti berhak masuk — verifikasi role admin.
+  const role = await fetchRole()
+  isSubmitting.value = false
+  if (role !== 'admin') {
+    await signOut()
+    formError.value = 'Akun ini tidak memiliki akses admin.'
     return
   }
   router.push({ name: 'admin-dashboard' })
@@ -84,6 +100,8 @@ function backToLogin() {
         <h1 class="login-card__heading">Admin Portal</h1>
         <span class="login-card__subheading">Kelurahan Tanjung Mas</span>
       </div>
+
+      <p v-if="notice && mode === 'login'" class="login-card__notice">{{ notice }}</p>
 
       <form v-if="mode === 'login'" class="login-card__form" @submit.prevent="handleLogin">
         <BaseInput
@@ -257,6 +275,16 @@ function backToLogin() {
   color: var(--danger);
 }
 
+.login-card__notice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm, 8px);
+  background: var(--blue-50, #eef4ff);
+  border: 1px solid var(--blue-200, #c7d7f5);
+  font-size: var(--fs-sm);
+  color: var(--blue-900);
+}
+
 .login-card__submit {
   width: 100%;
 }
@@ -313,5 +341,36 @@ function backToLogin() {
   text-align: center;
   font-size: 14px;
   color: var(--ink-700);
+}
+
+@media (max-width: 600px) {
+  .login-page {
+    /* Kartu tetap di tengah, tetapi aman dari notch & home indicator. */
+    padding: calc(24px + var(--safe-top)) 18px calc(24px + var(--safe-bottom));
+  }
+
+  .login-card {
+    padding: 30px 22px;
+    gap: 24px;
+    border-radius: var(--radius-lg);
+  }
+
+  .login-card__badge {
+    width: 58px;
+    height: 58px;
+  }
+
+  .login-card__heading {
+    font-size: 22px;
+    line-height: 28px;
+  }
+
+  .login-card__subheading {
+    font-size: 14px;
+  }
+
+  .login-card__footer {
+    font-size: 12.5px;
+  }
 }
 </style>
