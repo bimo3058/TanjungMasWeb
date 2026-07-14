@@ -26,6 +26,10 @@ body {
   line-height: var(--lh-md);
   color: var(--text-body);
   background: var(--surface-page);
+  /* Jaring pengaman: cegah scroll horizontal akibat elemen yang meluber.
+     `clip` (bukan `hidden`) tidak membuat scroll-container sehingga sticky nav
+     tetap berfungsi. */
+  overflow-x: clip;
 }
 
 #app {
@@ -35,6 +39,15 @@ body {
 img {
   display: block;
   max-width: 100%;
+}
+
+/* Kata/URL panjang tanpa spasi tidak boleh menjebol lebar kontainer. */
+h1,
+h2,
+h3,
+h4,
+p {
+  overflow-wrap: break-word;
 }
 
 a {

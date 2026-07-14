@@ -84,8 +84,30 @@ const handleEdit = (item: any) => {
         <div v-for="n in 4" :key="n" class="activity__skeleton-row" />
       </div>
       <p v-else-if="activity.length === 0" class="activity__empty">Belum ada aktivitas.</p>
-      
-      <div v-else class="activity__scroll">
+
+      <template v-else>
+        <!-- Versi ponsel: tabel aktivitas diringkas jadi daftar baris. -->
+        <div class="activity__cards">
+          <div
+            v-for="item in activity"
+            :key="`card-${item.source}-${item.id}`"
+            class="activity-row"
+          >
+            <div class="activity-row__main">
+              <div class="activity-row__title">{{ item.title }}</div>
+              <div class="activity-row__meta">
+                <BaseBadge variant="blue" dense>{{ item.source }}</BaseBadge>
+                <span class="activity-row__time">{{ formatRelativeIndonesia(item.updatedAt) }}</span>
+              </div>
+            </div>
+            <BaseBadge :variant="item.statusVariant" dense>{{ item.status }}</BaseBadge>
+            <button class="action-btn" title="Edit" @click="handleEdit(item)">
+              <Pencil :size="15" />
+            </button>
+          </div>
+        </div>
+
+        <div class="activity__scroll">
         <table class="activity__table">
           <thead>
             <tr>
@@ -132,23 +154,27 @@ const handleEdit = (item: any) => {
             </tr>
           </tbody>
         </table>
-      </div>
+        </div>
+      </template>
     </div>
-    
+
   </div>
 </template>
 
 <style scoped>
 /* GENERAL LAYOUT */
 .dashboard {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang —
+     inilah yang sebelumnya bikin isi kartu terpotong dan scroll tidak jalan. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 24px 32px;
+  gap: 16px;
+  /* Disamakan dengan halaman admin lain (.page) supaya dashboard tidak jadi
+     satu-satunya yang menjorok lebih dalam dari tepi. */
+  padding: 16px 20px 20px;
   font-family: 'Poppins', sans-serif;
   background-color: #F8F9FF;
-  min-height: 100vh;
 }
 
 /* HERO SECTION */
@@ -390,6 +416,50 @@ const handleEdit = (item: any) => {
   color: #7b8293;
 }
 
+/* DAFTAR AKTIVITAS VERSI PONSEL */
+.activity__cards {
+  display: none;
+}
+
+.activity-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid #eef0f6;
+}
+
+.activity-row:first-child {
+  border-top: none;
+}
+
+.activity-row__main {
+  flex: 1;
+  min-width: 0;
+}
+
+.activity-row__title {
+  font-size: 13px;
+  line-height: 17px;
+  font-weight: 600;
+  color: #0b1134;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.activity-row__meta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 3px;
+}
+
+.activity-row__time {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
 /* RESPONSIVE DESIGN */
 @media (max-width: 1024px) {
   .hero {
@@ -413,16 +483,84 @@ const handleEdit = (item: any) => {
 
 @media (max-width: 768px) {
   .dashboard {
-    padding: 16px;
+    gap: 14px;
+    padding: 14px var(--mobile-gutter) 22px;
   }
-  .stats {
-    grid-template-columns: 1fr;
+
+  /* Banner sambutan: ilustrasi dilepas agar teks + aksi muat di satu layar. */
+  .hero {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: left;
+    gap: 0;
+    padding: 16px 18px;
+    border-radius: var(--radius-lg);
+  }
+  .hero__image-wrapper {
+    display: none;
+  }
+  .hero__title {
+    font-size: 19px;
+    line-height: 24px;
+    margin-bottom: 4px;
+  }
+  .hero__lead {
+    margin: 0 0 14px;
+    max-width: 100%;
+    font-size: 12.5px;
+    line-height: 18px;
   }
   .hero__actions {
-    flex-direction: column;
+    justify-content: flex-start;
+    gap: 9px;
   }
-  .activity__table th, .activity__table td {
+  .btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px;
+    font-size: 12.5px;
+  }
+
+  /* Petak statistik 2 kolom — angka tetap terbaca di lebar ponsel. */
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 11px;
+  }
+
+  /* Di petak sempit angka didahulukan, label menyusul di bawahnya; urutan
+     StatCard desktop (label dulu) membuat angka jatuh tidak sejajar. */
+  .stats :deep(.stat-card) {
+    padding: 13px 14px;
+    gap: 11px;
+  }
+
+  .stats :deep(.stat-card__text) {
+    display: flex;
+    flex-direction: column-reverse;
+  }
+
+  .stats :deep(.stat-card__value) {
+    font-size: 22px;
+    line-height: 26px;
+  }
+
+  .stats :deep(.stat-card__label) {
+    font-size: 10px;
+    line-height: 13px;
+  }
+
+  .activity__header {
     padding: 12px 16px;
+  }
+  .activity__title {
+    font-size: 15px;
+  }
+
+  .activity__scroll {
+    display: none;
+  }
+  .activity__cards {
+    display: block;
   }
 }
 </style>

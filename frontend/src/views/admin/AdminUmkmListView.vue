@@ -9,6 +9,7 @@ import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseToggle from '@/components/ui/BaseToggle.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import NameCell from '@/components/ui/NameCell.vue'
+import AdminListCard from '@/components/ui/AdminListCard.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useAdminUmkmList } from '@/composables/useAdminUmkm'
 import { useCategories } from '@/composables/useCategories'
@@ -64,16 +65,20 @@ async function handleDelete() {
 
     <div class="table-card">
       <div class="table-card__filters">
-        <BaseSearchBar v-model="search" dense width="230px" placeholder="Cari usaha…" />
+        <div class="filters__search">
+          <BaseSearchBar v-model="search" dense placeholder="Cari usaha…" />
+        </div>
         <BaseSelect
           v-model="kategoriFilter"
           dense
+          class="filters__select"
           placeholder="Semua kategori"
           :options="categories.map((k) => ({ value: k.id, label: k.nama }))"
         />
         <BaseSelect
           v-model="statusFilter"
           dense
+          class="filters__select"
           placeholder="Semua status"
           :options="[
             { value: 'published', label: 'Dipublikasikan' },
@@ -135,6 +140,23 @@ async function handleDelete() {
             </tbody>
           </table>
         </div>
+
+        <!-- Versi ponsel: satu kartu per baris tabel. -->
+        <div class="card-list">
+          <AdminListCard
+            v-for="item in pageItems"
+            :key="item.id"
+            :image="item.gambar_utama"
+            :title="item.nama_usaha"
+            :sub="[item.nama_pemilik, item.nomor_telepon].filter(Boolean).join(' · ')"
+            :category="item.kategori_umkm?.nama ?? undefined"
+            :published="item.published"
+            @update:published="togglePublished(item.id, $event)"
+            @edit="router.push({ name: 'admin-umkm-edit', params: { id: item.id } })"
+            @delete="confirmDelete(item.id)"
+          />
+        </div>
+
         <div class="table-card__footer">
           <span class="table-card__range">
             Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} usaha
@@ -166,13 +188,13 @@ async function handleDelete() {
 
 <style scoped>
 .page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px 20px;
   font-family: var(--font-sans);
-  min-height: 0;
   box-sizing: border-box;
 }
 
@@ -222,12 +244,13 @@ async function handleDelete() {
 }
 
 .table-card__scroll {
-  overflow-x: hidden;
+  overflow-x: auto;
   flex: 1;
 }
 
 .table {
   width: 100%;
+  min-width: 720px;
   table-layout: fixed;
   border-collapse: collapse;
 }
@@ -314,5 +337,74 @@ async function handleDelete() {
   margin: 0;
   text-align: center;
   color: var(--text-muted);
+}
+
+.filters__search {
+  width: 230px;
+  max-width: 100%;
+}
+
+.card-list {
+  display: none;
+}
+
+/* ---- Ponsel: tabel diganti daftar kartu ---- */
+@media (max-width: 768px) {
+  .page {
+    padding: 14px var(--mobile-gutter) 22px;
+  }
+
+  /* Judul sudah tampil di top bar — di sini cukup jumlah data. */
+  .page__title {
+    display: none;
+  }
+
+  /* Kartu berdiri langsung di atas kanvas, bukan di dalam kartu tabel. */
+  .table-card {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+    gap: 12px;
+  }
+
+  .table-card__filters {
+    padding: 0;
+    border-bottom: none;
+    gap: 9px;
+  }
+
+  .filters__search {
+    flex: 1 0 100%;
+    width: auto;
+  }
+
+  .filters__select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .table-card__scroll {
+    display: none;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .table-card__footer {
+    padding: 4px 0 0;
+    border-top: none;
+  }
+
+  .table-card__skeleton {
+    padding: 0;
+  }
+
+  .table-card__empty {
+    padding: 24px 0;
+  }
 }
 </style>

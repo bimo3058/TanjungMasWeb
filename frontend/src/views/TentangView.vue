@@ -2,6 +2,7 @@
 import { useRouter } from 'vue-router'
 import { MapPin, Mail, Phone } from '@lucide/vue'
 import BaseButton from '@/components/ui/BaseButton.vue'
+import PublicCatalogHeader from '@/components/layout/PublicCatalogHeader.vue'
 import { useProfilDesa } from '@/composables/useProfilDesa'
 import heroVillage from '@/assets/design/hero-village.jpg'
 
@@ -10,17 +11,27 @@ const { profil, loading } = useProfilDesa()
 </script>
 
 <template>
-  <section class="tentang">
+  <div>
+    <PublicCatalogHeader
+      :searchable="false"
+      eyebrow="Tentang Kami"
+      :title="profil?.nama_desa || 'Kampung Nelayan Bahari Tambaklorok'"
+      :lead="
+        profil?.deskripsi_singkat ||
+        'Kehidupan pesisir yang autentik di jantung Kota Semarang — wisata bahari, cita rasa laut, dan kehangatan masyarakat nelayan.'
+      "
+    />
+    <section class="tentang">
     <div class="tentang__grid">
       <div class="story-card">
         <img :src="profil?.gambar_profil || heroVillage" class="story-card__image" alt="" />
         <div class="story-card__body">
-          <div class="story-card__eyebrow">Tentang Kami</div>
-          <h1 class="story-card__title">{{ profil?.nama_desa || 'Kampung Nelayan Bahari Tambaklorok' }}</h1>
+          <div class="story-card__eyebrow">Sejarah Kampung</div>
+          <h2 class="story-card__title">Asal-Usul &amp; Perjalanan</h2>
           <p v-if="loading" class="story-card__loading">Memuat...</p>
           <template v-else>
-            <p v-if="profil?.deskripsi_singkat" class="story-card__text">{{ profil.deskripsi_singkat }}</p>
             <p v-if="profil?.sejarah_asal_usul" class="story-card__text">{{ profil.sejarah_asal_usul }}</p>
+            <p v-else class="story-card__text">Cerita asal-usul desa akan segera hadir.</p>
           </template>
         </div>
       </div>
@@ -51,7 +62,8 @@ const { profil, loading } = useProfilDesa()
         </div>
       </div>
     </div>
-  </section>
+    </section>
+  </div>
 </template>
 
 <style scoped>
@@ -185,6 +197,19 @@ const { profil, loading } = useProfilDesa()
 @media (max-width: 860px) {
   .tentang__grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .tentang {
+    padding: 28px 20px 40px;
+  }
+  .story-card__body {
+    padding: 18px 18px 20px;
+  }
+  .story-card__title {
+    font-size: 22px;
+    line-height: 28px;
   }
 }
 </style>

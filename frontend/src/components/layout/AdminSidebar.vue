@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { 
-  mdiViewDashboard, 
-  mdiMapOutline, 
-  mdiStorefront, 
-  mdiNewspaper, 
-  mdiInformation, 
-  mdiLogout 
+import {
+  mdiViewDashboard,
+  mdiMapOutline,
+  mdiStorefront,
+  mdiNewspaper,
+  mdiInformation,
+  mdiAccountCog,
+  mdiLogout
 } from '@mdi/js'
 import logoCrest from '@/assets/design/logo-crest.png'
 import { useAuth } from '@/composables/useAuth'
@@ -20,7 +20,7 @@ const emit = defineEmits(['close'])
 
 const route = useRoute()
 const router = useRouter()
-const { user, signOut } = useAuth()
+const { user, isAdmin, displayName, signOut } = useAuth()
 
 // Gunakan path MDI untuk ikon menu
 const NAV = [
@@ -29,13 +29,8 @@ const NAV = [
   { name: 'admin-umkm', label: 'Manajemen UMKM', icon: mdiStorefront },
   { name: 'admin-berita', label: 'Manajemen Berita', icon: mdiNewspaper },
   { name: 'admin-profil', label: 'Profil Desa', icon: mdiInformation },
+  { name: 'admin-pengguna', label: 'Kelola Pengguna', icon: mdiAccountCog },
 ]
-
-const displayName = computed(
-  () => (user.value?.user_metadata?.full_name as string | undefined) ??
-    user.value?.email?.split('@')[0] ??
-    'Admin',
-)
 
 function isActive(name: string) {
   return route.matched.some((record) => record.name === name)
@@ -81,10 +76,18 @@ function handleClose() {
       </RouterLink>
     </nav>
     <div class="sidebar__user">
-      <div class="sidebar__user-text">
-        <div class="sidebar__user-name">{{ displayName }}</div>
+      <RouterLink
+        :to="{ name: 'admin-akun' }"
+        class="sidebar__user-text"
+        title="Akun Saya"
+        @click="handleClose"
+      >
+        <div class="sidebar__user-name">
+          {{ displayName }}
+          <span v-if="isAdmin" class="sidebar__user-role">Admin</span>
+        </div>
         <div class="sidebar__user-email">{{ user?.email }}</div>
-      </div>
+      </RouterLink>
       <button type="button" class="sidebar__logout" title="Keluar" @click="handleLogout">
         <svg viewBox="0 0 24 24" width="16" height="16">
           <path :d="mdiLogout" fill="currentColor" />
@@ -211,6 +214,13 @@ function handleClose() {
 .sidebar__user-text {
   min-width: 0;
   flex: 1;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar__user-text:hover {
+  opacity: 0.8;
 }
 
 .sidebar__user-name {
@@ -220,6 +230,21 @@ function handleClose() {
   color: var(--white);
   line-height: 16px;
   text-transform: capitalize;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar__user-role {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--gold-400);
+  color: var(--blue-950);
+  font-size: 9px;
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
 }
 
 .sidebar__user-email {
@@ -258,6 +283,13 @@ function handleClose() {
   .sidebar.sidebar--open {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
+}
+
+/* Di ponsel navigasi ditangani AdminTabBar (tab bar bawah) + menu avatar. */
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
   }
 }
 </style>

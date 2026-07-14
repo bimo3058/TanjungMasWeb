@@ -104,15 +104,38 @@ defineProps<{
 
 .wisata-card__stat {
   display: inline-flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 5px;
   font-size: 11.5px;
   font-weight: var(--fw-medium);
   color: var(--ink-700);
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
 }
 
 .wisata-card__icon {
   color: var(--blue-900);
   flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .wisata-card {
+    border-radius: var(--radius-lg);
+  }
+
+  .wisata-card__image {
+    height: 150px;
+  }
+
+  .wisata-card__title {
+    font-size: 16px;
+    line-height: 21px;
+  }
+
+  .wisata-card__desc {
+    font-size: 13px;
+    line-height: 19px;
+  }
 }
 </style>

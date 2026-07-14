@@ -45,6 +45,7 @@ const router = createRouter({
       path: '/admin/login',
       name: 'admin-login',
       component: () => import('../views/admin/AdminLoginView.vue'),
+      meta: { navTitle: 'Masuk' },
     },
     {
       path: '/admin',
@@ -123,10 +124,31 @@ const router = createRouter({
           component: () => import('../views/admin/AdminProfilDesaView.vue'),
           meta: { navTitle: 'Profil Desa' },
         },
+        {
+          path: 'pengguna',
+          name: 'admin-pengguna',
+          component: () => import('../views/admin/AdminPenggunaView.vue'),
+          meta: { navTitle: 'Kelola Pengguna' },
+        },
+        {
+          path: 'akun',
+          name: 'admin-akun',
+          component: () => import('../views/admin/AdminAkunView.vue'),
+          meta: { navTitle: 'Akun Saya' },
+        },
       ],
     },
   ],
 })
+
+async function isAdminUser(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single()
+  return !error && data?.role === 'admin'
+}
 
 router.beforeEach(async (to: RouteLocationNormalized) => {
   if (!to.meta.requiresAuth && to.name !== 'admin-login') return true
@@ -135,15 +157,42 @@ router.beforeEach(async (to: RouteLocationNormalized) => {
     data: { session },
   } = await supabase.auth.getSession()
 
-  if (to.meta.requiresAuth && !session) {
-    return { name: 'admin-login' }
+  if (to.meta.requiresAuth) {
+    if (!session) {
+      return { name: 'admin-login' }
+    }
+    // Session saja tidak cukup — hanya role 'admin' yang boleh masuk panel.
+    if (!(await isAdminUser(session.user.id))) {
+      await supabase.auth.signOut()
+      return { name: 'admin-login', query: { denied: '1' } }
+    }
   }
 
-  if (to.name === 'admin-login' && session) {
+  if (to.name === 'admin-login' && session && (await isAdminUser(session.user.id))) {
     return { name: 'admin-dashboard' }
   }
 
   return true
+})
+
+// ---------------------------------------------------------------------------
+// Judul tab per halaman. Sumbernya `meta.navTitle` yang sudah dipakai top bar
+// admin, jadi judul tab tidak bisa melenceng dari judul yang tampil di layar.
+// ---------------------------------------------------------------------------
+const SITE_NAME = 'Desa Wisata Tanjung Mas'
+const HOME_TITLE = 'Desa Wisata Kampung Nelayan Bahari Tambaklorok'
+
+router.afterEach((to) => {
+  const section = to.meta.navTitle as string | undefined
+
+  // Beranda tidak punya navTitle — pakai nama lengkap desa.
+  if (!section) {
+    document.title = HOME_TITLE
+    return
+  }
+
+  const scope = to.path.startsWith('/admin') ? 'Admin Tanjung Mas' : SITE_NAME
+  document.title = `${section} · ${scope}`
 })
 
 export default router

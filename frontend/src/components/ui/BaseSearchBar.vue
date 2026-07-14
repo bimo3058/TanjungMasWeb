@@ -45,6 +45,7 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   width: 100%;
+  max-width: 100%;
   flex-shrink: 0;
 }
 

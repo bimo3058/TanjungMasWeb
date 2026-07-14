@@ -9,6 +9,7 @@ import BaseSelect from '@/components/ui/BaseSelect.vue'
 import BaseToggle from '@/components/ui/BaseToggle.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import NameCell from '@/components/ui/NameCell.vue'
+import AdminListCard from '@/components/ui/AdminListCard.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
 import { useAdminBeritaList } from '@/composables/useAdminBerita'
 import { useCategories } from '@/composables/useCategories'
@@ -65,16 +66,20 @@ async function handleDelete() {
 
     <div class="table-card">
       <div class="table-card__filters">
-        <BaseSearchBar v-model="search" dense width="230px" placeholder="Cari berita…" />
+        <div class="filters__search">
+          <BaseSearchBar v-model="search" dense placeholder="Cari berita…" />
+        </div>
         <BaseSelect
           v-model="kategoriFilter"
           dense
+          class="filters__select"
           placeholder="Semua kategori"
           :options="categories.map((k) => ({ value: k.id, label: k.nama }))"
         />
         <BaseSelect
           v-model="statusFilter"
           dense
+          class="filters__select"
           placeholder="Semua status"
           :options="[
             { value: 'published', label: 'Terpublikasi' },
@@ -138,6 +143,26 @@ async function handleDelete() {
             </tbody>
           </table>
         </div>
+
+        <!-- Versi ponsel: satu kartu per baris tabel. -->
+        <div class="card-list">
+          <AdminListCard
+            v-for="item in pageItems"
+            :key="item.id"
+            :image="item.gambar_utama"
+            :title="item.judul"
+            :sub="[item.penulis, item.tanggal_publikasi ? formatTanggalIndonesia(item.tanggal_publikasi) : '—']
+              .filter(Boolean)
+              .join(' · ')"
+            :category="item.kategori_berita?.nama ?? undefined"
+            :published="item.status === 'Terpublikasi'"
+            published-label="Terpublikasi"
+            @update:published="toggleStatus(item.id, $event)"
+            @edit="router.push({ name: 'admin-berita-edit', params: { id: item.id } })"
+            @delete="confirmDelete(item.id)"
+          />
+        </div>
+
         <div class="table-card__footer">
           <span class="table-card__range">
             Menampilkan {{ rangeStart }}–{{ rangeEnd }} dari {{ filteredItems.length }} artikel
@@ -169,13 +194,13 @@ async function handleDelete() {
 
 <style scoped>
 .page {
-  flex: 1;
+  /* Tumbuh mengisi area gulir, tapi tak pernah dimampatkan saat konten panjang. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 12px;
   padding: 16px 20px 20px;
   font-family: var(--font-sans);
-  min-height: 0;
   box-sizing: border-box;
 }
 
@@ -225,12 +250,13 @@ async function handleDelete() {
 }
 
 .table-card__scroll {
-  overflow-x: hidden;
+  overflow-x: auto;
   flex: 1;
 }
 
 .table {
   width: 100%;
+  min-width: 720px;
   table-layout: fixed;
   border-collapse: collapse;
 }
@@ -317,5 +343,74 @@ async function handleDelete() {
   margin: 0;
   text-align: center;
   color: var(--text-muted);
+}
+
+.filters__search {
+  width: 230px;
+  max-width: 100%;
+}
+
+.card-list {
+  display: none;
+}
+
+/* ---- Ponsel: tabel diganti daftar kartu ---- */
+@media (max-width: 768px) {
+  .page {
+    padding: 14px var(--mobile-gutter) 22px;
+  }
+
+  /* Judul sudah tampil di top bar — di sini cukup jumlah data. */
+  .page__title {
+    display: none;
+  }
+
+  /* Kartu berdiri langsung di atas kanvas, bukan di dalam kartu tabel. */
+  .table-card {
+    background: transparent;
+    box-shadow: none;
+    border-radius: 0;
+    overflow: visible;
+    gap: 12px;
+  }
+
+  .table-card__filters {
+    padding: 0;
+    border-bottom: none;
+    gap: 9px;
+  }
+
+  .filters__search {
+    flex: 1 0 100%;
+    width: auto;
+  }
+
+  .filters__select {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .table-card__scroll {
+    display: none;
+  }
+
+  .card-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .table-card__footer {
+    padding: 4px 0 0;
+    border-top: none;
+  }
+
+  .table-card__skeleton {
+    padding: 0;
+  }
+
+  .table-card__empty {
+    padding: 24px 0;
+  }
 }
 </style>
