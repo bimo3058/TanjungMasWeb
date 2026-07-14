@@ -73,7 +73,7 @@ const CONTACT = computed(() =>
   display: grid;
   grid-template-columns: 1.5fr 1fr 1.2fr;
   gap: 36px;
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 
@@ -139,7 +139,7 @@ const CONTACT = computed(() =>
 }
 
 .footer__bottom {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 24px auto 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding-top: 14px;

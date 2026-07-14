@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { MapPin } from '@lucide/vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import BaseBadge from './BaseBadge.vue'
 import ClampedText from './ClampedText.vue'
 
@@ -9,11 +10,14 @@ defineProps<{
   title: string
   description?: string | null
   address?: string | null
+  /** Bila diisi, kartu jadi tautan ke halaman detail. Pratinjau di form admin
+   *  sengaja tidak mengisinya agar kartu tetap sekadar tampilan. */
+  to?: RouteLocationRaw
 }>()
 </script>
 
 <template>
-  <article class="card">
+  <component :is="to ? RouterLink : 'article'" :to="to" class="card">
     <div class="card__image-wrapper">
       <div class="card__image" :style="image ? { backgroundImage: `url(${image})` } : undefined" />
       <!-- Di ponsel gambar hanya selebar 104px, terlalu sempit untuk badge
@@ -34,7 +38,7 @@ defineProps<{
         </span>
       </div>
     </div>
-  </article>
+  </component>
 </template>
 
 <style scoped>
@@ -48,6 +52,9 @@ defineProps<{
   flex-direction: column;
   cursor: pointer;
   font-family: var(--font-sans);
+  /* Kartu bisa berupa <a> (RouterLink) — netralkan gaya tautan bawaan. */
+  text-decoration: none;
+  color: inherit;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   height: 100%;
 }

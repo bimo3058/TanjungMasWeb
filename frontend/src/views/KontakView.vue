@@ -23,7 +23,7 @@ const { profil, loading } = useProfilDesa()
     </section>
 
     <section class="kontak-body">
-      <div class="kontak-card">
+      <div v-slide-in class="kontak-card">
         <h2 class="kontak-card__title">Kantor Kelurahan Tanjung Mas</h2>
         <p v-if="loading" class="kontak-card__loading">Memuat...</p>
         <template v-else>
@@ -78,7 +78,7 @@ const { profil, loading } = useProfilDesa()
 }
 
 .kontak-header__inner {
-  max-width: 1160px;
+  max-width: var(--content-max);
   margin: 0 auto;
 }
 

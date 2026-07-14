@@ -7,6 +7,26 @@ export function formatTanggalIndonesia(value: string | null): string {
   }).format(new Date(value))
 }
 
+/**
+ * Kotak tanggal kalender festival: { bulan: 'DES', hari: '15' }.
+ *
+ * Kolom `festival.tanggal` bertipe DATE, dan new Date('2026-12-15') dibaca
+ * sebagai tengah malam UTC — di zona waktu negatif itu mundur sehari. Karena
+ * itu tanggalnya dirakit manual sebagai tanggal lokal.
+ */
+export function formatKotakTanggal(value: string): { bulan: string; hari: string } {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number)
+  const date = new Date(year, month - 1, day)
+
+  return {
+    bulan: new Intl.DateTimeFormat('id-ID', { month: 'short' })
+      .format(date)
+      .replace('.', '')
+      .toUpperCase(),
+    hari: String(day).padStart(2, '0'),
+  }
+}
+
 export function formatRelativeIndonesia(value: string): string {
   const diffMs = Math.max(0, Date.now() - new Date(value).getTime())
   const minutes = Math.floor(diffMs / 60000)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Newspaper, Calendar } from '@lucide/vue'
+import { Newspaper, Calendar, ArrowRight } from '@lucide/vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import BaseBadge from './BaseBadge.vue'
 import ClampedText from './ClampedText.vue'
 import { formatTanggalIndonesia } from '@/utils/formatDate'
@@ -12,6 +13,9 @@ withDefaults(
     title: string
     excerpt?: string | null
     big?: boolean
+    /** Bila diisi, kartu jadi tautan ke halaman detail. Pratinjau di form admin
+     *  sengaja tidak mengisinya agar kartu tetap sekadar tampilan. */
+    to?: RouteLocationRaw
   }>(),
   {
     big: false,
@@ -20,7 +24,12 @@ withDefaults(
 </script>
 
 <template>
-  <article class="news-card" :class="{ 'news-card--big': big }">
+  <component
+    :is="to ? RouterLink : 'article'"
+    :to="to"
+    class="news-card"
+    :class="{ 'news-card--big': big }"
+  >
     <div
       class="news-card__image"
       :style="image ? { backgroundImage: `url(${image})` } : undefined"
@@ -39,8 +48,12 @@ withDefaults(
         :lines="big ? 4 : 3"
         class="news-card__excerpt"
       />
+      <span v-if="to" class="news-card__more">
+        Baca Selengkapnya
+        <ArrowRight :size="14" />
+      </span>
     </div>
-  </article>
+  </component>
 </template>
 
 <style scoped>
@@ -52,6 +65,9 @@ withDefaults(
   font-family: var(--font-sans);
   display: flex;
   cursor: pointer;
+  /* Kartu bisa berupa <a> (RouterLink) — netralkan gaya tautan bawaan. */
+  text-decoration: none;
+  color: inherit;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
@@ -97,7 +113,20 @@ withDefaults(
 .news-card__meta {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
+}
+
+.news-card__more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 8px;
+  font-size: 12.5px;
+  font-weight: var(--fw-semibold);
+  color: var(--blue-900);
 }
 
 .news-card__date {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Ticket, Clock, MapPin } from '@lucide/vue'
+import { RouterLink, type RouteLocationRaw } from 'vue-router'
 import BaseBadge from './BaseBadge.vue'
 import ClampedText from './ClampedText.vue'
 
@@ -11,11 +12,14 @@ defineProps<{
   address?: string | null
   harga?: string | null
   jam?: string | null
+  /** Bila diisi, kartu jadi tautan ke halaman detail. Pratinjau di form admin
+   *  sengaja tidak mengisinya agar kartu tetap sekadar tampilan. */
+  to?: RouteLocationRaw
 }>()
 </script>
 
 <template>
-  <article class="wisata-card">
+  <component :is="to ? RouterLink : 'article'" :to="to" class="wisata-card">
     <div class="wisata-card__image-wrap">
       <div class="wisata-card__image" :style="image ? { backgroundImage: `url(${image})` } : undefined" />
       <BaseBadge v-if="category" variant="accent" class="wisata-card__badge">{{ category }}</BaseBadge>
@@ -29,7 +33,7 @@ defineProps<{
         <span v-if="address" class="wisata-card__stat"><MapPin :size="12" class="wisata-card__icon" />{{ address }}</span>
       </div>
     </div>
-  </article>
+  </component>
 </template>
 
 <style scoped>
@@ -42,6 +46,9 @@ defineProps<{
   flex-direction: column;
   cursor: pointer;
   font-family: var(--font-sans);
+  /* Kartu bisa berupa <a> (RouterLink) — netralkan gaya tautan bawaan. */
+  text-decoration: none;
+  color: inherit;
   transition:
     transform 0.15s ease,
     box-shadow 0.15s ease;
@@ -107,6 +114,8 @@ defineProps<{
   align-items: flex-start;
   gap: 5px;
   font-size: 11.5px;
+  /* Tinggi baris dipatok supaya tinggi kotak ikon di bawah punya acuan pasti. */
+  line-height: 16px;
   font-weight: var(--fw-medium);
   color: var(--ink-700);
   min-width: 0;
@@ -114,9 +123,15 @@ defineProps<{
   overflow-wrap: anywhere;
 }
 
+/* align-items: flex-start menempelkan ikon ke puncak kotak baris, sementara
+   hurufnya mulai beberapa piksel di bawah — ikon tampak naik. Kotak ikon
+   ditinggikan menyamai satu baris teks; SVG-nya menjaga rasio dan otomatis
+   terpusat di dalamnya, sehingga sejajar dengan baris pertama (penting untuk
+   alamat yang memanjang beberapa baris — center akan menaruhnya di tengah). */
 .wisata-card__icon {
   color: var(--blue-900);
   flex-shrink: 0;
+  height: 16px;
 }
 
 @media (max-width: 600px) {

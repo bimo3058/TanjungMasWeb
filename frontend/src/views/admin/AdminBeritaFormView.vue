@@ -5,9 +5,11 @@ import BaseButton from '@/components/ui/BaseButton.vue'
 import BaseInput from '@/components/ui/BaseInput.vue'
 import BaseTextarea from '@/components/ui/BaseTextarea.vue'
 import BaseSelect from '@/components/ui/BaseSelect.vue'
+import BaseToggle from '@/components/ui/BaseToggle.vue'
 import CategorySelect from '@/components/ui/CategorySelect.vue'
 import ImageUploader from '@/components/ui/ImageUploader.vue'
 import NewsCard from '@/components/ui/NewsCard.vue'
+import FormChecklist from '@/components/admin/FormChecklist.vue'
 import {
   getBeritaById,
   getDefaultPenulis,
@@ -16,6 +18,7 @@ import {
 } from '@/composables/useAdminBerita'
 import { useCategories } from '@/composables/useCategories'
 import { formatRelativeIndonesia } from '@/utils/formatDate'
+import { slugify } from '@/utils/slugify'
 
 const route = useRoute()
 const router = useRouter()
@@ -46,9 +49,36 @@ const values = ref<BeritaFormValues>({
   status: 'Draft',
   penulis: 'Admin Utama',
   tanggal_publikasi: null,
+  sorotan: false,
 })
 
 const tanggalPublikasiLocal = ref('')
+
+const jumlahKata = computed(
+  () => values.value.konten.trim().split(/\s+/).filter(Boolean).length,
+)
+
+const checklist = computed(() => [
+  { label: 'Judul diisi', done: !!values.value.judul.trim() },
+  { label: 'Konten minimal 40 kata', done: jumlahKata.value >= 40 },
+  { label: 'Kategori dipilih', done: !!values.value.kategori_id },
+  { label: 'Gambar utama diunggah', done: !!values.value.gambar_utama },
+  { label: 'Status Terpublikasi', done: values.value.status === 'Terpublikasi' },
+])
+
+const checklistMeta = computed(() => {
+  const kata = jumlahKata.value
+  // Slug baru dihitung ulang dari judul saat menyimpan, jadi yang ditampilkan
+  // di sini adalah tautan yang akan terbentuk — bukan slug lama yang tersimpan.
+  const slug = slugify(values.value.judul) || 'judul-berita'
+
+  return [
+    { label: 'Jumlah kata', value: `${kata}` },
+    // 200 kata per menit — kecepatan baca rata-rata orang dewasa.
+    { label: 'Perkiraan baca', value: `${Math.max(1, Math.round(kata / 200))} menit` },
+    { label: 'Tautan publik', value: `/berita/${slug}` },
+  ]
+})
 
 function toLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -81,6 +111,7 @@ onMounted(async () => {
     status: row.status,
     penulis: row.penulis,
     tanggal_publikasi: row.tanggal_publikasi,
+    sorotan: row.sorotan,
   }
   tanggalPublikasiLocal.value = toLocalInput(row.tanggal_publikasi)
   updatedAt.value = row.updated_at
@@ -143,6 +174,17 @@ async function handleSubmit() {
           Tanggal dikosongkan berarti otomatis diisi saat status diubah ke Terpublikasi.
         </span>
 
+        <div class="form-card__sorotan">
+          <BaseToggle v-model="values.sorotan" />
+          <div>
+            <span class="form-card__field-label">Jadikan Sorotan</span>
+            <span class="form-card__hint form-card__hint--inline">
+              Tampil sebagai kartu besar di puncak halaman Berita. Hanya satu berita bisa jadi
+              sorotan — menandai yang ini otomatis melepas sorotan sebelumnya.
+            </span>
+          </div>
+        </div>
+
         <ImageUploader v-model="values.gambar_utama" folder="berita" label="Gambar Utama" />
 
         <p v-if="error" class="form-card__error">{{ error }}</p>
@@ -168,6 +210,8 @@ async function handleSubmit() {
             />
           </div>
         </div>
+
+        <FormChecklist :items="checklist" :meta="checklistMeta" class="side__checklist" />
       </div>
     </div>
   </div>
@@ -207,11 +251,13 @@ async function handleSubmit() {
   color: var(--text-muted);
 }
 
+/* Tanpa stretch, tiap kolom setinggi isinya sendiri dan dasarnya tidak pernah
+   sejajar. Kolom kanan yang menyesuaikan: checklist-nya memuai. */
 .lower {
   flex: 1;
   display: flex;
   gap: 14px;
-  align-items: start;
+  align-items: stretch;
   min-height: 0;
 }
 
@@ -267,6 +313,25 @@ async function handleSubmit() {
   color: var(--text-muted);
 }
 
+.form-card__sorotan {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--blue-50);
+}
+
+.form-card__sorotan .form-card__field-label {
+  display: block;
+}
+
+.form-card__hint--inline {
+  display: block;
+  margin-top: 3px;
+  line-height: 16px;
+}
+
 .form-card__publish {
   display: flex;
   align-items: center;
@@ -291,11 +356,18 @@ async function handleSubmit() {
 .side {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Kartu pratinjau setinggi isinya; checklist menyerap sisa tinggi kolom agar
+   dasarnya rata dengan kartu form di kiri. */
+.side__checklist {
+  flex: 1;
 }
 
 .preview-card {
-  position: sticky;
-  top: 0;
   background: var(--surface-card);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-admin);

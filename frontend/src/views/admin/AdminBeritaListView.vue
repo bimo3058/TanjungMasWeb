@@ -11,6 +11,8 @@ import IconButton from '@/components/ui/IconButton.vue'
 import NameCell from '@/components/ui/NameCell.vue'
 import AdminListCard from '@/components/ui/AdminListCard.vue'
 import ConfirmDialog from '@/components/ui/ConfirmDialog.vue'
+import AdminPengumumanPanel from '@/components/admin/AdminPengumumanPanel.vue'
+import AdminFestivalPanel from '@/components/admin/AdminFestivalPanel.vue'
 import { useAdminBeritaList } from '@/composables/useAdminBerita'
 import { useCategories } from '@/composables/useCategories'
 import { usePagination } from '@/composables/usePagination'
@@ -19,6 +21,16 @@ import { formatTanggalIndonesia } from '@/utils/formatDate'
 const router = useRouter()
 const { items, loading, fetchList, toggleStatus, remove } = useAdminBeritaList()
 const { categories } = useCategories('kategori_berita')
+
+// Pengumuman & kalender festival dikelola di sini, bukan menu sidebar sendiri:
+// ketiganya mengisi satu halaman publik yang sama (Berita).
+type Tab = 'berita' | 'pengumuman' | 'festival'
+const TABS: Array<{ value: Tab; label: string }> = [
+  { value: 'berita', label: 'Berita' },
+  { value: 'pengumuman', label: 'Pengumuman Desa' },
+  { value: 'festival', label: 'Kalender Festival' },
+]
+const tab = ref<Tab>('berita')
 
 const search = ref('')
 const kategoriFilter = ref('')
@@ -56,15 +68,36 @@ async function handleDelete() {
     <div class="page__header">
       <div class="page__heading">
         <h1 class="page__title">Manajemen Berita</h1>
-        <span class="page__count">{{ filteredItems.length }} artikel</span>
+        <span v-if="tab === 'berita'" class="page__count">{{ filteredItems.length }} artikel</span>
       </div>
-      <BaseButton variant="primary" size="sm" @click="router.push({ name: 'admin-berita-baru' })">
+      <BaseButton
+        v-if="tab === 'berita'"
+        variant="primary"
+        size="sm"
+        @click="router.push({ name: 'admin-berita-baru' })"
+      >
         <template #icon><Plus :size="15" /></template>
         Buat Berita
       </BaseButton>
     </div>
 
-    <div class="table-card">
+    <nav class="tabs">
+      <button
+        v-for="item in TABS"
+        :key="item.value"
+        type="button"
+        class="tabs__btn"
+        :class="{ 'tabs__btn--active': tab === item.value }"
+        @click="tab = item.value"
+      >
+        {{ item.label }}
+      </button>
+    </nav>
+
+    <AdminPengumumanPanel v-if="tab === 'pengumuman'" />
+    <AdminFestivalPanel v-else-if="tab === 'festival'" />
+
+    <div v-else class="table-card">
       <div class="table-card__filters">
         <div class="filters__search">
           <BaseSearchBar v-model="search" dense placeholder="Cari berita…" />
@@ -116,7 +149,10 @@ async function handleDelete() {
             <tbody>
               <tr v-for="item in pageItems" :key="item.id">
                 <td>
-                  <NameCell :image="item.gambar_utama" :title="item.judul" :sub="`/${item.slug}`" />
+                  <div class="table__judul">
+                    <NameCell :image="item.gambar_utama" :title="item.judul" :sub="`/${item.slug}`" />
+                    <BaseBadge v-if="item.sorotan" variant="accent" dense>Sorotan</BaseBadge>
+                  </div>
                 </td>
                 <td><BaseBadge variant="blue" dense>{{ item.kategori_berita?.nama ?? '—' }}</BaseBadge></td>
                 <td class="table__cell-muted">{{ item.penulis }}</td>
@@ -229,6 +265,41 @@ async function handleDelete() {
   color: var(--gray-500);
 }
 
+.tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tabs__btn {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border: 1px solid var(--blue-200);
+  border-radius: 9999px;
+  background: var(--surface-card);
+  color: var(--ink-700);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: var(--fw-semibold);
+  cursor: pointer;
+}
+
+.tabs__btn:hover:not(.tabs__btn--active) {
+  background: var(--blue-50);
+}
+
+.tabs__btn--active {
+  background: var(--blue-950, #000242);
+  border-color: var(--blue-950, #000242);
+  color: var(--white, #fff);
+  cursor: default;
+}
+
 .table-card {
   background: var(--surface-card);
   border-radius: var(--radius-md);
@@ -285,6 +356,13 @@ async function handleDelete() {
 
 .table__cell-muted {
   color: var(--ink-700);
+}
+
+.table__judul {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
 }
 
 .table tbody tr:hover {
