@@ -2,6 +2,7 @@ import { ref } from 'vue'
 import { supabase } from '@/utils/supabase'
 import { ensureUniqueSlug } from '@/utils/uniqueSlug'
 import { slugify } from '@/utils/slugify'
+import { useImageUpload } from '@/composables/useImageUpload' // 1. Import composable uploader
 import type { UmkmRow } from '@/types/umkm'
 import type { GaleriFoto } from '@/types/galeri'
 
@@ -13,6 +14,9 @@ export function useAdminUmkmList() {
   const items = ref<UmkmListItem[]>([])
   const loading = ref(true)
   const error = ref('')
+  
+  // 2. Inisialisasi fungsi deleteImage
+  const { deleteImage } = useImageUpload() 
 
   async function fetchList(search = '', kategoriId = '') {
     loading.value = true
@@ -40,6 +44,24 @@ export function useAdminUmkmList() {
   }
 
   async function remove(id: string) {
+    // 3. AMBIL URL GAMBAR SEBELUM DIHAPUS DARI DB
+    const { data: umkm } = await supabase.from('umkm').select('gambar_utama').eq('id', id).single()
+    const { data: galeri } = await supabase.from('galeri_umkm').select('url_gambar').eq('umkm_id', id)
+
+    // 4. HAPUS GAMBAR FISIK DARI STORAGE
+    if (umkm?.gambar_utama) {
+      await deleteImage(umkm.gambar_utama)
+    }
+    
+    if (galeri && galeri.length > 0) {
+      for (const item of galeri) {
+        if (item.url_gambar) {
+          await deleteImage(item.url_gambar)
+        }
+      }
+    }
+
+    // 5. BARU HAPUS DARI DATABASE
     await supabase.from('galeri_umkm').delete().eq('umkm_id', id)
     await supabase.from('umkm').delete().eq('id', id)
     items.value = items.value.filter((i) => i.id !== id)
@@ -78,12 +100,20 @@ export async function saveUmkm(
   gallery: GaleriFoto[],
   existing?: { id: string; originalGallery: GaleriFoto[] },
 ): Promise<string> {
+  const { deleteImage } = useImageUpload() // Panggil composable
   const baseSlug = slugify(values.nama_usaha)
   const slug = await ensureUniqueSlug('umkm', baseSlug, existing?.id)
 
   let id: string
   if (existing) {
     id = existing.id
+    
+    // 6. CEK JIKA GAMBAR UTAMA DIGANTI, HAPUS GAMBAR LAMA
+    const { data: oldUmkm } = await supabase.from('umkm').select('gambar_utama').eq('id', id).single()
+    if (oldUmkm?.gambar_utama && oldUmkm.gambar_utama !== values.gambar_utama) {
+      await deleteImage(oldUmkm.gambar_utama)
+    }
+
     const { error } = await supabase
       .from('umkm')
       .update({ ...values, slug })
@@ -105,6 +135,14 @@ export async function saveUmkm(
   const toInsert = gallery.filter((g) => !g.id)
 
   if (toDelete.length > 0) {
+    // 7. HAPUS GAMBAR GALERI DARI STORAGE SEBELUM HAPUS DARI DB
+    const deletedGalleryItems = (existing?.originalGallery ?? []).filter(g => toDelete.includes(g.id))
+    for (const item of deletedGalleryItems) {
+      if (item.url_gambar) {
+        await deleteImage(item.url_gambar)
+      }
+    }
+    
     await supabase.from('galeri_umkm').delete().in('id', toDelete)
   }
   if (toInsert.length > 0) {
