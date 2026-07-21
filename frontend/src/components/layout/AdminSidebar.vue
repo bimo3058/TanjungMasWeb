@@ -109,6 +109,17 @@ function handleClose() {
   box-shadow: var(--shadow-nav);
   z-index: 100;
   transition: transform 0.3s ease-in-out;
+  /* Scrollbar global berwarna biru terang — di atas navy ia justru menyala.
+     Di sini dipakai putih transparan agar menyatu dengan latarnya. */
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.32);
 }
 
 .sidebar__brand {

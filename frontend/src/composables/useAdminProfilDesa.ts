@@ -1,6 +1,7 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '@/utils/supabase'
 import type { ProfilDesaRow } from '@/types/profilDesa'
+import { removePublicMedia } from '@/utils/storageMedia'
 
 export interface ProfilDesaForm {
   nama_desa: string
@@ -17,6 +18,8 @@ export interface ProfilDesaForm {
 }
 
 export function useAdminProfilDesa() {
+  let savedGambarProfil: string | null = null
+  let savedHeroImage: string | null = null
   const profil = ref<ProfilDesaForm>({
     nama_desa: '',
     sejarah_asal_usul: '',
@@ -53,6 +56,8 @@ export function useAdminProfilDesa() {
         hero_image: row.hero_image,
       }
       updatedAt.value = row.updated_at
+      savedGambarProfil = row.gambar_profil
+      savedHeroImage = row.hero_image
     }
     loading.value = false
   })
@@ -68,6 +73,12 @@ export function useAdminProfilDesa() {
         .single()
       if (saveError) throw saveError
       updatedAt.value = (data as { updated_at: string | null }).updated_at
+      await removePublicMedia([
+        savedGambarProfil !== values.gambar_profil ? savedGambarProfil : null,
+        savedHeroImage !== values.hero_image ? savedHeroImage : null,
+      ])
+      savedGambarProfil = values.gambar_profil
+      savedHeroImage = values.hero_image
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Gagal menyimpan profil desa.'
       throw err

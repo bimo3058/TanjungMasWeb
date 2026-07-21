@@ -56,14 +56,22 @@ watch(
 onBeforeUnmount(destroyCropper)
 
 function handleConfirm() {
-  const canvas = cropper?.getCroppedCanvas()
+  const canvas = cropper?.getCroppedCanvas({
+    maxWidth: 1920,
+    maxHeight: 1920,
+    imageSmoothingEnabled: true,
+    imageSmoothingQuality: 'high',
+  })
+
   if (!canvas) return
+
   canvas.toBlob(
     (blob) => {
-      if (blob) emit('confirm', blob)
+      if (blob) {
+        emit('confirm', blob)
+      }
     },
-    'image/jpeg',
-    0.9,
+    'image/png',
   )
 }
 

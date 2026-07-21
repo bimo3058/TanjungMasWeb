@@ -1,7 +1,6 @@
 import { supabase } from '@/utils/supabase'
 import { compressImage } from '@/utils/compressImage'
-
-const BUCKET = 'public-media'
+import { PUBLIC_MEDIA_BUCKET } from '@/utils/storageMedia'
 
 export function useImageUpload() {
   const uploadImage = async (file: File | Blob, folder: string): Promise<string> => {
@@ -28,7 +27,7 @@ export function useImageUpload() {
 
       // 4. Upload file yang sudah sangat ringan ke Supabase
       const { error } = await supabase.storage
-        .from(BUCKET)
+        .from(PUBLIC_MEDIA_BUCKET)
         .upload(path, compressedFile, {
           cacheControl: '3600',
           upsert: false,
@@ -38,7 +37,7 @@ export function useImageUpload() {
       if (error) throw error
 
       // 5. Ambil URL Publik
-      const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+      const { data } = supabase.storage.from(PUBLIC_MEDIA_BUCKET).getPublicUrl(path)
       
       return data.publicUrl
     } catch (err) {
