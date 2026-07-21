@@ -3,6 +3,7 @@ import { supabase } from '@/utils/supabase'
 import { ensureUniqueSlug } from '@/utils/uniqueSlug'
 import { slugify } from '@/utils/slugify'
 import type { BeritaRow } from '@/types/berita'
+import { removePublicMedia } from '@/utils/storageMedia'
 
 export interface BeritaListItem extends BeritaRow {
   kategori_berita: { nama: string } | null
@@ -47,7 +48,16 @@ export function useAdminBeritaList() {
   }
 
   async function remove(id: string) {
-    await supabase.from('berita').delete().eq('id', id)
+    const { data, error: fetchError } = await supabase
+      .from('berita')
+      .select('gambar_utama')
+      .eq('id', id)
+      .single()
+    if (fetchError) throw fetchError
+
+    const { error: deleteError } = await supabase.from('berita').delete().eq('id', id)
+    if (deleteError) throw deleteError
+    await removePublicMedia([data.gambar_utama])
     items.value = items.value.filter((i) => i.id !== id)
   }
 
@@ -97,8 +107,17 @@ export async function saveBerita(values: BeritaFormValues, existingId?: string):
   const payload = { ...values, tanggal_publikasi, slug }
 
   if (existingId) {
+    const { data: oldRow, error: oldRowError } = await supabase
+      .from('berita')
+      .select('gambar_utama')
+      .eq('id', existingId)
+      .single()
+    if (oldRowError) throw oldRowError
     const { error } = await supabase.from('berita').update(payload).eq('id', existingId)
     if (error) throw error
+    if (oldRow.gambar_utama !== values.gambar_utama) {
+      await removePublicMedia([oldRow.gambar_utama])
+    }
     return existingId
   }
 

@@ -4,6 +4,7 @@ import { ensureUniqueSlug } from '@/utils/uniqueSlug'
 import { slugify } from '@/utils/slugify'
 import type { WisataRow } from '@/types/wisata'
 import type { GaleriFoto } from '@/types/galeri'
+import { removePublicMedia } from '@/utils/storageMedia'
 
 export interface WisataListItem extends WisataRow {
   kategori_wisata: { nama: string } | null
@@ -40,8 +41,21 @@ export function useAdminWisataList() {
   }
 
   async function remove(id: string) {
-    await supabase.from('galeri_wisata').delete().eq('wisata_id', id)
-    await supabase.from('wisata').delete().eq('id', id)
+    const { data, error: fetchError } = await supabase
+      .from('wisata')
+      .select('gambar_utama, galeri_wisata(url_gambar)')
+      .eq('id', id)
+      .single()
+    if (fetchError) throw fetchError
+
+    const { error: deleteError } = await supabase.from('wisata').delete().eq('id', id)
+    if (deleteError) throw deleteError
+
+    const row = data as {
+      gambar_utama: string | null
+      galeri_wisata: Array<{ url_gambar: string }>
+    }
+    await removePublicMedia([row.gambar_utama, ...row.galeri_wisata.map((g) => g.url_gambar)])
     items.value = items.value.filter((i) => i.id !== id)
   }
 
@@ -82,11 +96,20 @@ export async function saveWisata(
   let id: string
   if (existing) {
     id = existing.id
+    const { data: oldRow, error: oldRowError } = await supabase
+      .from('wisata')
+      .select('gambar_utama')
+      .eq('id', id)
+      .single()
+    if (oldRowError) throw oldRowError
     const { error } = await supabase
       .from('wisata')
       .update({ ...values, slug })
       .eq('id', id)
     if (error) throw error
+    if (oldRow.gambar_utama !== values.gambar_utama) {
+      await removePublicMedia([oldRow.gambar_utama])
+    }
   } else {
     const { data, error } = await supabase
       .from('wisata')
@@ -103,7 +126,12 @@ export async function saveWisata(
   const toInsert = gallery.filter((g) => !g.id)
 
   if (toDelete.length > 0) {
-    await supabase.from('galeri_wisata').delete().in('id', toDelete)
+    const removedUrls = (existing?.originalGallery ?? [])
+      .filter((g) => toDelete.includes(g.id))
+      .map((g) => g.url_gambar)
+    const { error } = await supabase.from('galeri_wisata').delete().in('id', toDelete)
+    if (error) throw error
+    await removePublicMedia(removedUrls)
   }
   if (toInsert.length > 0) {
     await supabase

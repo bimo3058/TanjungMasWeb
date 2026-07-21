@@ -53,7 +53,7 @@ function removeAt(index: number) {
     <input
       ref="fileInput"
       type="file"
-      accept="image/*"
+      accept="image/jpeg,image/png,image/webp"
       class="gallery__input"
       @change="handleFileChange"
     />

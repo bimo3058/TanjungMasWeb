@@ -77,7 +77,7 @@ function removeImage() {
     <input
       ref="fileInput"
       type="file"
-      accept="image/*"
+      accept="image/jpeg,image/png,image/webp"
       class="uploader__input"
       @change="handleFileChange"
     />
